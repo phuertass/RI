@@ -10,10 +10,6 @@ import org.apache.tika.metadata.Metadata;
 import org.apache.tika.langdetect.optimaize.OptimaizeLangDetector;
 import org.apache.tika.language.detect.LanguageDetector;
 
-/**
- *
- * @author jhg
- */
 public class EjemploSimple {
 
     public static void main(String[] args) throws Exception {
