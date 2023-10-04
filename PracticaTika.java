@@ -18,7 +18,7 @@ import org.apache.tika.sax.LinkContentHandler;
 import org.apache.tika.sax.TeeContentHandler;
 import org.apache.tika.sax.ToHTMLContentHandler;
 import org.xml.sax.ContentHandler;
-import java.util.ArrayList;
+
 import java.util.*;
 import org.apache.tika.detect.AutoDetectReader;
 import org.apache.tika.exception.TikaException;
@@ -85,6 +85,11 @@ public class PracticaTika{
             System.out.println("Nombre\tTipo\tCodificación\tIdioma");
             for(String nombre : ficheros){
                 File archivo = new File(nombre);
+
+                if (!archivo.exists() || !archivo.isFile()) {
+                    System.out.println("El archivo " + nombre + " no existe o no es un archivo válido.");
+                    continue; // Skip to the next file
+                }
                 
                     tika.parse(archivo,metadata);
 
