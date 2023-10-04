@@ -79,13 +79,13 @@ public class PracticaTika{
     public static void crearTabla(String[] ficheros, Tika tika, Metadata metadata) throws Exception{
         if (ficheros== null || ficheros.length==0){
             System.out.println("El directorio está vaciío");
-            
+        } 
 
             //Encabezados 
             System.out.println("Nombre\tTipo\tCodificación\tIdioma");
             for(String nombre : ficheros){
                 File archivo = new File(nombre);
-                if(archivo.isFile()){
+                
                     tika.parse(archivo,metadata);
 
                     //TIPO
@@ -105,9 +105,9 @@ public class PracticaTika{
 
                 
 
-            }
+            
         }
-        }
+        
     }
     //OPCION -L OBTENER ENLACES
 
