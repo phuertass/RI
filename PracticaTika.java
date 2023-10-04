@@ -40,7 +40,7 @@ public class PracticaTika{
 
         return idioma.getLanguage();
     }
-    public static void main(String[] args) {
+    public static void main (String[] args)throws Exception {
         
 
         if(args.length < 2){
@@ -76,10 +76,10 @@ public class PracticaTika{
     }
 
     //OPCIÓN -D CREAR TABLA
-    public static void crearTabla(String[] ficheros, Tika tika, Metadata metadata){
+    public static void crearTabla(String[] ficheros, Tika tika, Metadata metadata) throws Exception{
         if (ficheros== null || ficheros.length==0){
             System.out.println("El directorio está vaciío");
-            return;
+            
 
             //Encabezados 
             System.out.println("Nombre\tTipo\tCodificación\tIdioma");
@@ -103,14 +103,15 @@ public class PracticaTika{
 
                     System.out.println(nombre + "\t"+tipo + "\t"+ codificacion+"\t"+idioma);
 
-                }
+                
 
             }
+        }
         }
     }
     //OPCION -L OBTENER ENLACES
 
-    public static void extraerEnlaces(String[] ficheros, Tika tika, Metadata metadata){
+    public static void extraerEnlaces(String[] ficheros, Tika tika, Metadata metadata)throws Exception{
 
         for(String nombre : ficheros){
             File archivo = new File(nombre);
