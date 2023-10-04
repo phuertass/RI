@@ -33,6 +33,7 @@ import org.apache.tika.parser.txt.CharsetDetector;
 import org.apache.tika.parser.txt.CharsetMatch;
 
 
+
 public class PracticaTika{
     public static String identifyLanguage(String texto){
         LanguageDetector identifier = new OptimaizeLangDetector().loadModels();
@@ -72,7 +73,7 @@ public class PracticaTika{
         }else if("-l".equals(opcion)){
             extraerEnlaces(ficheros, tika,metadata, args[1]);
         }else if ("-t".equals(opcion)){
-            //crearCSV(ficheros, tika);
+            crearCSV(ficheros, tika, metadata,args[1]);
         }else{
             System.out.println("OPCION NO VÁLIDA, USO -> <[-d/-l/-t]> ");
         }
@@ -83,8 +84,7 @@ public class PracticaTika{
     public static void crearTabla(String[] ficheros, Tika tika, Metadata metadata, String args) throws Exception{
         if (ficheros== null || ficheros.length==0){
             System.out.println("El directorio está vaciío");
-        } 
-
+        }
             //Encabezados 
             System.out.println("Nombre\tTipo\tCodificación\tIdioma");
             for(String nombre : ficheros){
@@ -98,7 +98,6 @@ public class PracticaTika{
                     System.out.println("El archivo " + nombre + " no existe o no es un archivo válido.");
                     continue; // Skip to the next file
                 }
-                
                     tika.parse(archivo,metadata);
 
                     //TIPO
@@ -109,16 +108,10 @@ public class PracticaTika{
                     String idioma= identifyLanguage(contenido);
 
                     //CODIFICACIÓN
-                    
                     String codificacion = metadata.get("Content-Encoding");
 
                     //IMPRIMIR LOS DATOS
-
                     System.out.println(nombre + "\t"+tipo + "\t"+ codificacion+"\t"+idioma);
-
-                
-
-            
         }
         
     }
@@ -131,8 +124,7 @@ public class PracticaTika{
                 
                 System.out.println(nameFile);
                 File archivo = new File(nameFile);
-            
-            
+
                 LinkContentHandler linkHandler = new LinkContentHandler();
 
                 ParseContext parseContext = new ParseContext();
@@ -152,10 +144,77 @@ public class PracticaTika{
                 }
                 
                 }
-                
+        }
+    }
 
+    //OPCION -T CREAR CSV
+    public static void crearCSV(String[] ficheros, Tika tika, Metadata metadata, String args)throws Exception{
+        //Primero vemos si tenemos creado el directorio CSV y si no, pues lo creamos
+        File csv = new File("CSV");
+        if(!csv.exists()){
+            csv.mkdir();
+        }
 
-            
+        for(String nombre: ficheros){
+            String nameFile = args+ "/"+ nombre;
+
+            System.out.println(nameFile);
+            File archivo = new File(nameFile);
+            tika.parse(archivo, metadata);
+            String contenido = tika.parseToString(archivo).toLowerCase();
+
+            //Separar las palabras
+            String[] palabras = contenido.split("\\s+|[\\.|\\,|\\;|\\:|\\¿|\\?|\\¡|\\!|\\(|\\)|\\{|\\}|\\*|\\$|\\^|\\=|\\'|\\'|\\-|\\_|\\–|\\<|\\>|\\#|\\`|\\~|\\€]");
+
+            //Pasamos a ver la ocurrencia de cada palabra. Para ello creamos un arraylist de la clase
+            //frecuenciapalabras donde almacenaremos el num de veces que aparece una palabra
+            ArrayList<FrecuenciaPalabras> numfrecuencia = new ArrayList<FrecuenciaPalabras>();
+
+            //Recorremos el array en busca de la palabra y su frecuencia
+            for(String palabra : palabras){
+                int contador = 0; //inicializamos un contador a 0
+                Boolean esta = false;
+
+                while(contador < numfrecuencia.size() && !esta){ //mientras que el contador no sea mayor que el num de palabras y no se encuentre
+                    if(numfrecuencia.get(contador).palabra.compareTo(palabra)==0){ //si la encontramos por primera vez
+                        esta = true;
+                    }else{ //si no, pues incrementamos el num de veces que se encuentra
+                        contador++;
+                    }
+                }
+
+                if(esta){
+                    numfrecuencia.get(contador).ocurrencias++; //aumentamos el num de veces que aparece
+                }else{
+                    numfrecuencia.add(new FrecuenciaPalabras(palabra, 1)); //anadimos 1 para que no desaparezca
+                }
+            }
+
+            //Ordenamos en orden decreciente
+            Collections.sort(numfrecuencia, new SortbyOcurrencias());
+
+            //quitamos las que no sirven
+            for(int i=0; i<numfrecuencia.size(); i++){
+                if(numfrecuencia.get(i).palabra.compareTo("")==0){
+                    numfrecuencia.remove(i);
+                }
+            }
+
+            //Generamos los CSV para cada documento
+            String filename = "./CSV/" + archivo.getName() + ".csv";
+            System.out.println("Directorio CSV creado para el documento " +archivo.getName());
+
+            // Añadimos la información al fichero CSV
+            String d_csv="";
+
+            for(int i=0; i<numfrecuencia.size(); i++){
+                d_csv+=numfrecuencia.get(i).palabra+";"+numfrecuencia.get(i).ocurrencias+"\n";
+            }
+
+            //Usamos PrintWriter ya que nos permite imprimir representaciones formateadas de una salida de stream de texto
+            PrintWriter writer = new PrintWriter(filename);
+            writer.print(d_csv);
+            writer.close();
         }
     }
 }

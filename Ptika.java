@@ -103,9 +103,6 @@ public class Ptika {
     System.out.println("\n");
 
     if(args.length>1){
-
-     
-
       if(args[0].toString().equals("-d")){
         //Creamos la tabla
         System.out.format("|        Nombre                                          Tipo de fichero                                    Codificacion                                            Idioma                   |%n");
@@ -173,11 +170,6 @@ public class Ptika {
 
             System.out.println("\n");
           }
-
-      
-    
-
-
         } else if(args[0].toString().equals("-t")){
           //Primero vemos si tenemos creado el directorio CSV y si no, pues lo creamos
           File csv = new File("CSV");
