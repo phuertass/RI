@@ -42,6 +42,7 @@ public class PracticaTika{
     }
     public static void main(String[] args) {
         
+
         if(args.length < 2){
             System.out.println("Número de parámetros incorrectos");
             System.out.println("USO -> <[-d/-l/-t]> <directorio>");
@@ -65,9 +66,9 @@ public class PracticaTika{
         if("-d".equals(opcion)){
             crearTabla(ficheros, tika, metadata);
         }else if("-l".equals(opcion)){
-            extraerEnlaces(ficheros, tika);
+            extraerEnlaces(ficheros, tika,metadata);
         }else if ("-t".equals(opcion)){
-            crearCSV(ficheros, tika);
+            //crearCSV(ficheros, tika);
         }else{
             System.out.println("OPCION NO VÁLIDA, USO -> <[-d/-l/-t]> ");
         }
@@ -75,7 +76,7 @@ public class PracticaTika{
     }
 
     //OPCIÓN -D CREAR TABLA
-    public static void crearTabla(Stings[] ficheros, Tika tika, Metadata metadata){
+    public static void crearTabla(String[] ficheros, Tika tika, Metadata metadata){
         if (ficheros== null || ficheros.length==0){
             System.out.println("El directorio está vaciío");
             return;
@@ -109,7 +110,7 @@ public class PracticaTika{
     }
     //OPCION -L OBTENER ENLACES
 
-    public static void extraerEnlaces(String[] ficheros, Tika tika){
+    public static void extraerEnlaces(String[] ficheros, Tika tika, Metadata metadata){
 
         for(String nombre : ficheros){
             File archivo = new File(nombre);
