@@ -18,7 +18,7 @@ import org.apache.tika.sax.LinkContentHandler;
 import org.apache.tika.sax.TeeContentHandler;
 import org.apache.tika.sax.ToHTMLContentHandler;
 import org.xml.sax.ContentHandler;
-import java.util.ArrayList;
+
 import java.util.*;
 import org.apache.tika.detect.AutoDetectReader;
 import org.apache.tika.exception.TikaException;
@@ -54,6 +54,10 @@ public class PracticaTika{
         //DIRECTORIO
         File directorio = new File(args[1]);
         String[] ficheros = directorio.list();
+        System.out.println("Ficheros en el directorio actual: " + ficheros.length);
+        System.out.println("Directorio actual: " + directorio.getAbsolutePath());
+        System.out.println("Nombre de los ficheros del directorio actual:" + Arrays.toString(ficheros));
+        System.out.println("args[0] = " + args[0]);
 
         Tika tika = new Tika();
 
@@ -64,7 +68,7 @@ public class PracticaTika{
         //OPCIONES
         String opcion=args[0];
         if("-d".equals(opcion)){
-            crearTabla(ficheros, tika, metadata);
+            crearTabla(ficheros, tika, metadata, args[1]);
         }else if("-l".equals(opcion)){
             extraerEnlaces(ficheros, tika,metadata);
         }else if ("-t".equals(opcion)){
@@ -76,7 +80,7 @@ public class PracticaTika{
     }
 
     //OPCIÓN -D CREAR TABLA
-    public static void crearTabla(String[] ficheros, Tika tika, Metadata metadata) throws Exception{
+    public static void crearTabla(String[] ficheros, Tika tika, Metadata metadata, String args) throws Exception{
         if (ficheros== null || ficheros.length==0){
             System.out.println("El directorio está vaciío");
         } 
@@ -84,7 +88,14 @@ public class PracticaTika{
             //Encabezados 
             System.out.println("Nombre\tTipo\tCodificación\tIdioma");
             for(String nombre : ficheros){
-                File archivo = new File(nombre);
+                String nameFile =  args+ "/"+ nombre;
+                System.out.println(nameFile);
+                File archivo = new File(nameFile);
+
+                if (!archivo.exists() ) {
+                    System.out.println("El archivo " + nombre + " no existe o no es un archivo válido.");
+                    continue; // Skip to the next file
+                }
                 
                     tika.parse(archivo,metadata);
 
