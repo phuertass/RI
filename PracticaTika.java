@@ -88,11 +88,13 @@ public class PracticaTika{
             //Encabezados 
             System.out.println("Nombre\tTipo\tCodificación\tIdioma");
             for(String nombre : ficheros){
-                String nameFile =  args+ "/"+ nombre;
+
+                String nameFile = "./" + args+ nombre;
                 System.out.println(nameFile);
                 File archivo = new File(nameFile);
 
-                if (!archivo.exists() ) {
+                if (!archivo.exists() || !archivo.isFile()) {
+
                     System.out.println("El archivo " + nombre + " no existe o no es un archivo válido.");
                     continue; // Skip to the next file
                 }
