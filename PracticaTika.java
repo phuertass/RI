@@ -70,7 +70,7 @@ public class PracticaTika{
         if("-d".equals(opcion)){
             crearTabla(ficheros, tika, metadata, args[1]);
         }else if("-l".equals(opcion)){
-            extraerEnlaces(ficheros, tika,metadata);
+            extraerEnlaces(ficheros, tika,metadata, args[1]);
         }else if ("-t".equals(opcion)){
             //crearCSV(ficheros, tika);
         }else{
@@ -89,7 +89,7 @@ public class PracticaTika{
             System.out.println("Nombre\tTipo\tCodificación\tIdioma");
             for(String nombre : ficheros){
 
-                String nameFile = "./" + args+ nombre;
+                String nameFile = args+ "/"+ nombre;
                 System.out.println(nameFile);
                 File archivo = new File(nameFile);
 
@@ -124,11 +124,15 @@ public class PracticaTika{
     }
     //OPCION -L OBTENER ENLACES
 
-    public static void extraerEnlaces(String[] ficheros, Tika tika, Metadata metadata)throws Exception{
+    public static void extraerEnlaces(String[] ficheros, Tika tika, Metadata metadata, String args)throws Exception{
 
         for(String nombre : ficheros){
-            File archivo = new File(nombre);
-            if(archivo.isFile()){
+            String nameFile = args+ "/"+ nombre;
+                
+                System.out.println(nameFile);
+                File archivo = new File(nameFile);
+            
+            
                 LinkContentHandler linkHandler = new LinkContentHandler();
 
                 ParseContext parseContext = new ParseContext();
@@ -139,14 +143,19 @@ public class PracticaTika{
 
                 List<Link> enlaces = linkHandler.getLinks();
                 if(enlaces.isEmpty()){
-                    System.out.println("No hay links");
-                }else for(Link enlace : enlaces){
-                    System.out.println(enlace.getUri());
+                    System.out.println("No hay links en : " +archivo.getName()+".");
+                }else {
+                    System.out.println("Links encontrados en " +archivo.getName()+":");
+                    for(Link enlace : enlaces){
+                    
+                        System.out.println(enlace.getUri());
                 }
-                //System.out.println("Links encontrados en " +archivo.getName()+":");
+                
+                }
+                
 
 
-            }
+            
         }
     }
 }
