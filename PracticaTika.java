@@ -42,7 +42,6 @@ public class PracticaTika{
         return idioma.getLanguage();
     }
     public static void main (String[] args)throws Exception {
-        
 
         if(args.length < 2){
             System.out.println("Número de parámetros incorrectos");
@@ -115,8 +114,8 @@ public class PracticaTika{
         }
         
     }
-    //OPCION -L OBTENER ENLACES
 
+    //OPCION -L OBTENER ENLACES
     public static void extraerEnlaces(String[] ficheros, Tika tika, Metadata metadata, String args)throws Exception{
 
         for(String nombre : ficheros){
@@ -148,73 +147,73 @@ public class PracticaTika{
     }
 
     //OPCION -T CREAR CSV
-    public static void crearCSV(String[] ficheros, Tika tika, Metadata metadata, String args)throws Exception{
-        //Primero vemos si tenemos creado el directorio CSV y si no, pues lo creamos
-        File csv = new File("CSV");
-        if(!csv.exists()){
-            csv.mkdir();
+    public static void crearCSV(String[] nombresArchivos, Tika tikaInstancia, Metadata metadatos, String directorio)throws Exception{
+        //CREAR DIRECTORIO CSV
+        File carpetaCSV = new File("CSV");
+        if(!carpetaCSV.exists()){
+            carpetaCSV.mkdir();
         }
 
-        for(String nombre: ficheros){
-            String nameFile = args+ "/"+ nombre;
+        for(String nombreArchivo: nombresArchivos){
+            String rutaArchivo = directorio + "/" + nombreArchivo;
 
-            System.out.println(nameFile);
-            File archivo = new File(nameFile);
-            tika.parse(archivo, metadata);
-            String contenido = tika.parseToString(archivo).toLowerCase();
+            System.out.println(rutaArchivo);
+            File archivo = new File(rutaArchivo);
+            tikaInstancia.parse(archivo, metadatos);
+            String contenidoTexto = tikaInstancia.parseToString(archivo).toLowerCase();
 
             //Separar las palabras
-            String[] palabras = contenido.split("\\s+|[\\.|\\,|\\;|\\:|\\¿|\\?|\\¡|\\!|\\(|\\)|\\{|\\}|\\*|\\$|\\^|\\=|\\'|\\'|\\-|\\_|\\–|\\<|\\>|\\#|\\`|\\~|\\€]");
+            String[] palabras = contenidoTexto.split("\\s+|[\\.|\\,|\\;|\\:|\\¿|\\?|\\¡|\\!|\\(|\\)|\\{|\\}|\\*|\\$|\\^|\\=|\\'|\\'|\\-|\\_|\\–|\\<|\\>|\\#|\\`|\\~|\\€]");
 
-            //Pasamos a ver la ocurrencia de cada palabra. Para ello creamos un arraylist de la clase
-            //frecuenciapalabras donde almacenaremos el num de veces que aparece una palabra
-            ArrayList<FrecuenciaPalabras> numfrecuencia = new ArrayList<FrecuenciaPalabras>();
+            //Creamos un ArrayList de frecuencia de palabras
+            ArrayList<FrecuenciaPalabras> frecuenciaPalabrasLista = new ArrayList<FrecuenciaPalabras>();
 
-            //Recorremos el array en busca de la palabra y su frecuencia
+            //Se rellena el ArrayList
             for(String palabra : palabras){
                 int contador = 0; //inicializamos un contador a 0
                 Boolean esta = false;
 
-                while(contador < numfrecuencia.size() && !esta){ //mientras que el contador no sea mayor que el num de palabras y no se encuentre
-                    if(numfrecuencia.get(contador).palabra.compareTo(palabra)==0){ //si la encontramos por primera vez
+                while(contador < frecuenciaPalabrasLista.size() && !esta){ //mientras que el contador no sea mayor que el num de palabras y no se encuentre
+                    if(frecuenciaPalabrasLista.get(contador).palabra.compareTo(palabra)==0){ //si la encontramos por primera vez
                         esta = true;
-                    }else{ //si no, pues incrementamos el num de veces que se encuentra
+                    }else{ //si no, incrementamos el num de veces que se encuentra
                         contador++;
                     }
                 }
 
                 if(esta){
-                    numfrecuencia.get(contador).ocurrencias++; //aumentamos el num de veces que aparece
+                    frecuenciaPalabrasLista.get(contador).ocurrencias++; //aumentamos el num de veces que aparece
                 }else{
-                    numfrecuencia.add(new FrecuenciaPalabras(palabra, 1)); //anadimos 1 para que no desaparezca
+                    frecuenciaPalabrasLista.add(new FrecuenciaPalabras(palabra, 1)); //añadimos 1 para que no desaparezca
                 }
             }
 
             //Ordenamos en orden decreciente
-            Collections.sort(numfrecuencia, new SortbyOcurrencias());
+            Collections.sort(frecuenciaPalabrasLista, new OrdenarPorOcurrencias());
 
-            //quitamos las que no sirven
-            for(int i=0; i<numfrecuencia.size(); i++){
-                if(numfrecuencia.get(i).palabra.compareTo("")==0){
-                    numfrecuencia.remove(i);
+            //Quitamos las palabras que no sirven
+            for(int i=0; i<frecuenciaPalabrasLista.size(); i++){
+                if(frecuenciaPalabrasLista.get(i).palabra.compareTo("")==0){
+                    frecuenciaPalabrasLista.remove(i);
                 }
             }
 
             //Generamos los CSV para cada documento
-            String filename = "./CSV/" + archivo.getName() + ".csv";
-            System.out.println("Directorio CSV creado para el documento " +archivo.getName());
+            String nombreFicheroCSV = "./CSV/" + archivo.getName() + ".csv";
+            System.out.println("Directorio CSV creado para el documento " + archivo.getName());
 
             // Añadimos la información al fichero CSV
-            String d_csv="";
+            String contenidoCSV = "";
 
-            for(int i=0; i<numfrecuencia.size(); i++){
-                d_csv+=numfrecuencia.get(i).palabra+";"+numfrecuencia.get(i).ocurrencias+"\n";
+            for(int i=0; i<frecuenciaPalabrasLista.size(); i++){
+                contenidoCSV += frecuenciaPalabrasLista.get(i).palabra + ";" + frecuenciaPalabrasLista.get(i).ocurrencias + "\n";
             }
 
             //Usamos PrintWriter ya que nos permite imprimir representaciones formateadas de una salida de stream de texto
-            PrintWriter writer = new PrintWriter(filename);
-            writer.print(d_csv);
-            writer.close();
+            PrintWriter escritor = new PrintWriter(nombreFicheroCSV);
+            escritor.print(contenidoCSV);
+            escritor.close();
         }
     }
+
 }
