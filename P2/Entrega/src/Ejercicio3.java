@@ -82,12 +82,12 @@ public class Ejercicio3 {
             // Ponemos en mayúsculas los tokens que tienen una longitud menor o igual a 3
             Analyzer analyzer = CustomAnalyzer.builder()
                     .withTokenizer("standard")
-                    .addTokenFilter("lowercase")
-                    .whenTerm(token -> token.length() > 10)
+                    .addTokenFilter("uppercase")
+                    .whenTerm(token -> token.length() > 3)
                     .addTokenFilter("reversestring")
                     .endwhen()
-                    .whenTerm(token -> token.length() <= 3)
-                    .addTokenFilter("uppercase")
+                    .whenTerm(token -> token.length() <= 5)
+                    .addTokenFilter("lowercase")
                     .endwhen()
                     .build();
 
@@ -102,7 +102,7 @@ public class Ejercicio3 {
             stream.reset();
             // Obtenemos los tokens
             while (stream.incrementToken())
-                writer.print(" | " + stream.getAttribute(CharTermAttribute.class).toString() + " | " + "\n");
+                writer.print(stream.getAttribute(CharTermAttribute.class).toString()+"\n");
 
             System.out.println();
 
