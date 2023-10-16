@@ -1,6 +1,6 @@
 --------------------------------------------------------
                   WhitespaceAnalyzer                 
-     Numero de tokens en el archivo: 1282 
+     Number of tokens in the document: 1282 
 --------------------------------------------------------
 the;130
 and;127
@@ -1170,4 +1170,4 @@ Speaking;1
 everyday;1
 /ColorImageDepth;1
 store.really-learn-english.com/pages/contact;1
-/Description;1
+/Description;

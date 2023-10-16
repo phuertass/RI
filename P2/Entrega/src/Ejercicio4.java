@@ -9,8 +9,6 @@ public class Ejercicio4 {
     static class CodeLineTokenizer extends Tokenizer {
         private final CharTermAttribute termAtt = addAttribute(CharTermAttribute.class);
 
-        private static final Pattern PATTERN = Pattern.compile("[,;{}()]");
-
         public CodeLineTokenizer() {
         }
 
@@ -18,24 +16,26 @@ public class Ejercicio4 {
         public boolean incrementToken() throws IOException {
             clearAttributes();
             StringBuilder line = new StringBuilder();
+
+            // Leer los caracteres e introducirlos en la linea cuando no sean un \n
             int c;
             while ((c = input.read()) != -1) {
                 char ch = (char) c;
                 if (ch == '\n') {
                     break;
                 }
-                line.append(ch);
+                // Elimina llaves, comas, paréntesis y punto y coma
+                if(ch != '[' && ch!= ',' && ch!=';' && ch!='{' && ch!='}' &&  ch!='(' &&  ch!=')' &&  ch!=']'){
+                    line.append(ch);
+                }
             }
+
             if (line.length() > 0) {
                 String lineText = line.toString().toLowerCase().trim();
                 // Filtra líneas vacías
                 if (!lineText.isEmpty()) {
-                    // Elimina llaves, comas, paréntesis y punto y coma
-                    lineText = PATTERN.matcher(lineText).replaceAll("");
-                    if(lineText.length() > 0) {
-                        termAtt.append(lineText);
-                        return true;
-                    }
+                    termAtt.append(lineText);
+                    return true;
                 }
             }
             return false;

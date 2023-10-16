@@ -49,115 +49,89 @@ import org.apache.lucene.analysis.core.StopAnalyzer;
 
 public class Ejercicio1 {
 
+    public static void analyzeText(Analyzer analyzer, String name, String content, String fileName) throws IOException {
+        TokenStream stream = analyzer.tokenStream(null, content);
+        CharTermAttribute attr = stream.addAttribute(CharTermAttribute.class);
+        stream.reset();
 
-    public static void analizadores(Analyzer analyzer, String name, String contenido, String file) throws IOException{
-      //usamos TokenStream para enumerar la secuencia de tokens
-      TokenStream stream = analyzer.tokenStream(null, contenido);
-      CharTermAttribute attr = stream.addAttribute(CharTermAttribute.class);
-      //Inicializamos el stream  antes de llamar a incrementToken
-      stream.reset();
-      
-      Map<String,Integer> ocurrencias = new HashMap<String, Integer>();
-      
-      //Añadimos todos los tokens del TokenStream al map
-      while(stream.incrementToken()){
-        String palabra=attr.toString();
-        Integer value=ocurrencias.get(palabra);
-        
-        if(value==null){
-          ocurrencias.put(palabra,1);
-        }else{
-          ocurrencias.put(palabra,value+1);
-        }    
-      }
+        Map<String, Integer> wordCounts = new HashMap<>();
 
-      //ordenamos las palabras
-      ocurrencias=sortByValue(ocurrencias);   
+        while (stream.incrementToken()) {
+            String word = attr.toString();
+            Integer count = wordCounts.get(word);
 
-      //Creamos archivos .txt con el recuento de las palabras de cada documento
-      PrintWriter writer = new PrintWriter("./Estadisticas/" + file + "-" + name +".txt");
+            if (count == null) {
+                wordCounts.put(word, 1);
+            } else {
+                wordCounts.put(word, count + 1);
+            }
+        }
 
-      writer.print("--------------------------------------------------------\n");
-      writer.print("                  "  + name +"                 " + "\n");
-      writer.print("     Numero de tokens en el archivo: " + ocurrencias.size() + " " + "\n");
-      writer.print("--------------------------------------------------------\n");
-  
+        wordCounts = sortByValue(wordCounts);
 
-      //imprimimos la palabra y su num de frecuencia
-      for (Map.Entry<String, Integer> pair : ocurrencias.entrySet()) {
-        writer.print(pair.getKey() + ";" + pair.getValue() + "\n");
-      }
-     
-      stream.end();
-      stream.close();
+        PrintWriter writer = new PrintWriter("./Estadisticas/" + fileName + "-" + name + ".txt");
 
+        writer.print("--------------------------------------------------------\n");
+        writer.print("                  " + name + "                 " + "\n");
+        writer.print("     Number of tokens in the document: " + wordCounts.size() + " " + "\n");
+        writer.print("--------------------------------------------------------\n");
+
+        for (Map.Entry<String, Integer> entry : wordCounts.entrySet()) {
+            writer.print(entry.getKey() + ";" + entry.getValue() + "\n");
+        }
+
+        stream.end();
+        stream.close();
     }
 
-public static Map<String, Integer> sortByValue(final Map<String, Integer> wordCounts) {
-  /*Introduce las entradas del Map en un Stream, lo ordena con los valores que tiene el Map
-  y crea otro map con las entradas ya ordenadas y con los valores del antiguo Map.*/
-    return wordCounts.entrySet()
-            .stream()
-            .sorted((Map.Entry.<String, Integer>comparingByValue().reversed()))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
-  }
-
-
-public static void main(String[] args) throws IOException{
-  //Comprobamos los argumentos de entrada
-  if(args.length < 1){
-    System.out.println("ERROR: parámetros incorrectos.");
-    System.out.println("Por favor, introduzca el directorio.");
-    System.exit(0);
-  }
-
-    //Obtenemos el directorio que se le pasa como argumento y los ficheros que contiene
-    File directorio = new File(args[0]);
-    String[] archivos = directorio.list();
-
-    //Creamos un objeto Tika y le establecemos el num de caracteres para los strings (visto en la p1)
-    Tika tika = new Tika();
-    tika.setMaxStringLength(1000000000);
-    //Creamos un objeto de metadata para parsear los ficheros
-    Metadata metadata = new Metadata();
-
-    System.out.println("\n");
-
-    //Vemos si existe el directorio 'Estadisticas', si no es asi, lo creamos
-    File est = new File("./Estadisticas");
-    if(!est.exists()){
-      est.mkdir();
+    public static Map<String, Integer> sortByValue(final Map<String, Integer> wordCounts) {
+        return wordCounts.entrySet()
+                .stream()
+                .sorted((Map.Entry.<String, Integer>comparingByValue().reversed()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
     }
 
-    //Recorremos todos los archivos
-    for(String f : archivos){
-      File file = new File("./"+args[0]+"/"+f);
+    public static void main(String[] args) throws IOException {
+        if (args.length < 1) {
+            System.out.println("ERROR: Incorrect parameters.");
+            System.out.println("Please provide the directory path.");
+            System.exit(0);
+        }
 
-      //Parseamos
-      tika.parse(file, metadata);
-      String contenido = new String();
+        File directory = new File(args[0]);
+        String[] files = directory.list();
 
-      try{
-        contenido = tika.parseToString(file);
-        System.out.println("Parseando archivo...");
-        System.out.println("Archivo parseado: " + file + "\n");
-      }catch (Exception e){ 
-        System.out.println("No se puede parsear...\n\n");
-      }
+        Tika tika = new Tika();
+        tika.setMaxStringLength(1000000000);
+        Metadata metadata = new Metadata();
 
-      CharArraySet stopSet = SpanishAnalyzer.getDefaultStopSet();
-      
-      //usamos funcion
-      analizadores(new WhitespaceAnalyzer(), "WhitespaceAnalyzer", contenido, f);
-      analizadores(new StandardAnalyzer(), "StandardAnalyzer", contenido, f);
-      analizadores(new SimpleAnalyzer(), "SimpleAnalyzer", contenido, f);
-      analizadores(new StopAnalyzer(stopSet), "StopAnalyzer EMPTY_WORDS_SET", contenido, f);
-      analizadores(new StopAnalyzer(stopSet), "StopAnalyzer SPANISH_STOP_WORDS_SET", contenido, f);
-      analizadores(new SpanishAnalyzer(), "SpanishAnalyzer", contenido, f);
-        
+        System.out.println("\n");
+
+        File statisticsDirectory = new File("./Estadisticas");
+        if (!statisticsDirectory.exists()) {
+            statisticsDirectory.mkdir();
+        }
+
+        for (String fileName : files) {
+            File file = new File("./" + args[0] + "/" + fileName);
+            tika.parse(file, metadata);
+            String content = new String();
+
+            try {
+              content = tika.parseToString(file);
+              System.out.println("Parseando archivo...");
+              System.out.println("Archivo parseado: " + fileName + "\n");
+          } catch (Exception e) {
+              System.out.println("No se puede parsear...\n\n");
+          }
+            CharArraySet stopSet = SpanishAnalyzer.getDefaultStopSet();
+
+            analyzeText(new WhitespaceAnalyzer(), "WhitespaceAnalyzer", content, fileName);
+            analyzeText(new StandardAnalyzer(), "StandardAnalyzer", content, fileName);
+            analyzeText(new SimpleAnalyzer(), "SimpleAnalyzer", content, fileName);
+            analyzeText(new StopAnalyzer(stopSet), "StopAnalyzer EMPTY_WORDS_SET", content, fileName);
+            analyzeText(new StopAnalyzer(SpanishAnalyzer.getDefaultStopSet()), "StopAnalyzer SPANISH_STOP_WORDS_SET", content, fileName);
+            analyzeText(new SpanishAnalyzer(), "SpanishAnalyzer", content, fileName);
+        }
     }
-  }
 }
-
-
-

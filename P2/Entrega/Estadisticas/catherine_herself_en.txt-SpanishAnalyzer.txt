@@ -1,6 +1,6 @@
 --------------------------------------------------------
                   SpanishAnalyzer                 
-     Numero de tokens en el archivo: 9807 
+     Number of tokens in the document: 9807 
 --------------------------------------------------------
 the;5164
 of;2933
@@ -9482,4 +9482,4 @@ _thing_;1
 lacerating;1
 rivalling;1
 creaking;1
-superintendent;1
+superintendent

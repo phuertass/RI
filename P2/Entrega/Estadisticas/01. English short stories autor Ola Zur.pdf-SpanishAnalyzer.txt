@@ -1,6 +1,6 @@
 --------------------------------------------------------
                   SpanishAnalyzer                 
-     Numero de tokens en el archivo: 893 
+     Number of tokens in the document: 893 
 --------------------------------------------------------
 the;157
 and;147
@@ -755,4 +755,4 @@ addbleedmarks;1
 married;1
 colorimagedepth;1
 colorimageautofilterstrategy;1
-useembeddedprofil;
+useembeddedprofi

@@ -1,6 +1,6 @@
 --------------------------------------------------------
                   WhitespaceAnalyzer                 
-     Numero de tokens en el archivo: 17530 
+     Number of tokens in the document: 17530 
 --------------------------------------------------------
 the;4669
 of;2848

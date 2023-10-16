@@ -1,6 +1,6 @@
 --------------------------------------------------------
                   StandardAnalyzer                 
-     Numero de tokens en el archivo: 9988 
+     Number of tokens in the document: 9988 
 --------------------------------------------------------
 the;5162
 of;2933
@@ -9347,4 +9347,4 @@ wagonette;1
 installed;1
 acrobatically;1
 begging;1
-denun
+den

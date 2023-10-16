@@ -1,6 +1,6 @@
 --------------------------------------------------------
                   StandardAnalyzer                 
-     Numero de tokens en el archivo: 906 
+     Number of tokens in the document: 906 
 --------------------------------------------------------
 the;157
 and;147
@@ -748,4 +748,4 @@ u.s;1
 metadatatitle;1
 ascii85encodepages;1
 dot;1
-0.25000
+0.250

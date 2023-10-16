@@ -35,16 +35,16 @@ import org.apache.lucene.analysis.synonym.SynonymFilter;
 
 public class Ejercicio2 {
 
-    public static void muestraToken(TokenStream stream, String texto) throws IOException {
-    	//mostramos el nombre del token que estamos usando
-        System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ " + texto + " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    public static void showToken(TokenStream stream, String text) throws IOException {
+        // Mostramos el nombre del token que estamos usando
+        System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ " + text + " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         System.out.println("\n");
 
-        //Inicializamos el stream  antes de llamar a incrementToken
+        // Inicializamos el stream antes de llamar a incrementToken
         stream.reset();
-        //obtenemos los tokens
+        // Obtenemos los tokens
         while (stream.incrementToken()) {
-            System.out.print(" "+stream.getAttribute(CharTermAttribute.class).toString());
+            System.out.print(" " + stream.getAttribute(CharTermAttribute.class).toString());
         }
 
         stream.end();
@@ -52,14 +52,11 @@ public class Ejercicio2 {
         System.out.println("\n\n");
     }
 
-    /**
-     * @param args the command line arguments
-     */
     public static void main(String[] args) throws IOException {
         //Insertamos un texto que sera el que probaremos con los distintos tokens
-        String cadena = "En un lugar de la Mancha, de cuyo nombre no quiero acordarme, no ha mucho tiempo que vivía un hidalgo de los de lanza en astillero, adarga antigua, rocín flaco y galgo corredor.";
+        String text = "En un lugar de la Mancha, de cuyo nombre no quiero acordarme, no ha mucho tiempo que vivía un hidalgo de los de lanza en astillero, adarga antigua, rocín flaco y galgo corredor.";
         System.out.println("\n\n");
-        System.out.println("Texto original: " + cadena);
+        System.out.println("Texto original: " + text);
         System.out.println("\n\n");
 
         //Creamos el diccionario de sinonimos necesario para SynonymFilter
@@ -70,43 +67,41 @@ public class Ejercicio2 {
         builder.add(new CharsRef("astillero"), new CharsRef("varadero"), true);
         builder.add(new CharsRef("rocin"), new CharsRef("caballo"), true);
         builder.add(new CharsRef("galgo"), new CharsRef("lebrel"), true);
-        SynonymMap sinonimos = builder.build();
+        SynonymMap synonyms = builder.build();
 
-		//Muestra el texto por defecto
-		muestraToken(new StandardAnalyzer().tokenStream(null, cadena), "StandardAnalyzer");
 
-		//Convierte los tokens a minúsculas
-		muestraToken(new LowerCaseFilter(new WhitespaceAnalyzer().tokenStream(null, cadena)), "LowerCaseFilter");
+        // Muestra el texto por defecto
+        showToken(new StandardAnalyzer().tokenStream(null, text), "StandardAnalyzer");
 
-		//Elimina los tokens de la cadena que se encuentren en el conjunto de palabras vacías
-		CharArraySet stopSet = SpanishAnalyzer.getDefaultStopSet();
-		Iterator iter = stopSet.iterator();
-		muestraToken(new StopFilter(new StandardAnalyzer().tokenStream(null, cadena), stopSet), "StopFilter");
-		
-		//Reduce cada token a su raíz
-		muestraToken(new SnowballFilter(new StandardAnalyzer().tokenStream(null, cadena), "Spanish"), "SnowballFilter");
-		
-		//Realiza combinaciones de tokens
-		muestraToken(new ShingleFilter(new StandardAnalyzer().tokenStream(null, cadena)), "ShingleFilter");
-		
-		//Reduce los tokens a una longitud dada y si es de menor longitud los elimina
-		muestraToken(new EdgeNGramTokenFilter(new StandardAnalyzer().tokenStream(null, cadena), 4), "EdgeNGramTokenFilter");
-		
-		//Igual que el anterior, pero hace combinaciones
-		muestraToken(new NGramTokenFilter(new StandardAnalyzer().tokenStream(null, cadena), 4), "NGramTokenFilter");
-		
-		//Añadimos algunas common words necesarias para el funcionamiento del CommonGramsFilter
-		String[] words = new String[] {"en", "de", "un", "la"};
-		CharArraySet commonWords = new CharArraySet(words.length, false);
-		commonWords.addAll(Arrays.asList(words));
+        // Convierte los tokens a minúsculas
+        showToken(new LowerCaseFilter(new WhitespaceAnalyzer().tokenStream(null, text)), "LowerCaseFilter");
 
-		//Realiza combinaciones con los commonWords junto a las que aparecen próximas
-		muestraToken(new CommonGramsFilter(new StandardAnalyzer().tokenStream(null, cadena), commonWords), "CommonGramsFilter");
-		
-		//Crea tokens con los sinónimos que le hemos dado
-		muestraToken(new SynonymFilter(new StandardAnalyzer().tokenStream(null, cadena), sinonimos, true), "SynonymFilter");
-		
+        // Elimina los tokens de la cadena que se encuentren en el conjunto de palabras vacías
+        CharArraySet stopSet = SpanishAnalyzer.getDefaultStopSet();
+        Iterator iter = stopSet.iterator();
+        showToken(new StopFilter(new StandardAnalyzer().tokenStream(null, text), stopSet), "StopFilter");
 
+        // Reduce cada token a su raíz
+        showToken(new SnowballFilter(new StandardAnalyzer().tokenStream(null, text), "Spanish"), "SnowballFilter");
+
+        // Realiza combinaciones de tokens
+        showToken(new ShingleFilter(new StandardAnalyzer().tokenStream(null, text)), "ShingleFilter");
+
+        // Reduce los tokens a una longitud dada y si es de menor longitud los elimina
+        showToken(new EdgeNGramTokenFilter(new StandardAnalyzer().tokenStream(null, text), 4), "EdgeNGramTokenFilter");
+
+        // Igual que el anterior, pero hace combinaciones
+        showToken(new NGramTokenFilter(new StandardAnalyzer().tokenStream(null, text), 4), "NGramTokenFilter");
+
+        // Añadimos algunas common words necesarias para el funcionamiento del CommonGramsFilter
+        String[] words = new String[]{"en", "de", "un", "la"};
+        CharArraySet commonWords = new CharArraySet(words.length, false);
+        commonWords.addAll(Arrays.asList(words));
+
+        // Realiza combinaciones con los commonWords junto a las que aparecen próximas
+        showToken(new CommonGramsFilter(new StandardAnalyzer().tokenStream(null, text), commonWords), "CommonGramsFilter");
+
+        // Crea tokens con los sinónimos que le hemos dado
+        showToken(new SynonymFilter(new StandardAnalyzer().tokenStream(null, text), synonyms, true), "SynonymFilter");
     }
-
 }

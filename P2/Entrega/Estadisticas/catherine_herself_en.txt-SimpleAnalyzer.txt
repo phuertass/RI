@@ -1,6 +1,6 @@
 --------------------------------------------------------
                   SimpleAnalyzer                 
-     Numero de tokens en el archivo: 9622 
+     Number of tokens in the document: 9622 
 --------------------------------------------------------
 the;5168
 of;2933
@@ -9344,4 +9344,4 @@ unromantic;1
 described;1
 speculation;1
 hopelessness;1
-pack
+pa

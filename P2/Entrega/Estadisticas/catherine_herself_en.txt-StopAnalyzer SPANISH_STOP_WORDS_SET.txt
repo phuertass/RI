@@ -1,6 +1,6 @@
 --------------------------------------------------------
                   StopAnalyzer SPANISH_STOP_WORDS_SET                 
-     Numero de tokens en el archivo: 9606 
+     Number of tokens in the document: 9606 
 --------------------------------------------------------
 the;5168
 of;2933
@@ -9335,4 +9335,4 @@ spooned;1
 forgiving;1
 rudely;1
 lighthouse;1
-affecting;
+affectin
