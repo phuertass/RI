@@ -22,8 +22,12 @@ else
 	then
 		javac -cp ./lib/tika-app-2.9.0.jar:./lib/lucene-9.3.0/modules/lucene-core-9.3.0.jar:./lib/lucene-9.3.0/modules/lucene-analysis-common-9.3.0.jar ./src/Ejercicio4.java
 		java -cp ./lib/tika-app-2.9.0.jar:./lib/lucene-9.3.0/modules/lucene-core-9.3.0.jar:./src/:./lib/lucene-9.3.0/modules/lucene-analysis-common-9.3.0.jar Ejercicio4
+	elif [ $1 -eq "-5" ]
+	then 
+		rm -rf ./Estadisticas
+		rm -rf ./AnalizadorPersonalizado
 	else
-		echo "Error: no has usado una opcion [-1, -2. -3]."
+		echo "Error: no has usado una opcion [-1, -2. -3, -4]."
 	fi
 fi
 
