@@ -77,9 +77,9 @@ public class Ejercicio3 {
             tika.parse(file, metadata);
 
             // Usamos CustomAnalyzer para poder usar los distintos analizadores
-            // Convertimos a minúsculas todas las palabras
-            // Invertimos los tokens que tienen una longitud mayor que 10
-            // Ponemos en mayúsculas los tokens que tienen una longitud menor o igual a 3
+           
+            // Invertimos los tokens que tienen una longitud mayor que 3
+            // Ponemos en mayúsculas los tokens que tienen una longitud menor o igual a 5
             Analyzer analyzer = CustomAnalyzer.builder()
                     .withTokenizer("standard")
                     .addTokenFilter("uppercase")
@@ -92,13 +92,13 @@ public class Ejercicio3 {
                     .build();
 
             TokenStream stream = analyzer.tokenStream(null, text);
-            // Eliminamos los números
+            
             stream = new NumbersFilter(stream);
 
             // Creamos el PrintWriter para escribir en cada fichero
             PrintWriter writer = new PrintWriter("./AnalizadorPersonalizado/" + fileName + ".txt");
 
-            // Se llama antes de usar incrementToken()
+           
             stream.reset();
             // Obtenemos los tokens
             while (stream.incrementToken())
