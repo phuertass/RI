@@ -2,7 +2,7 @@ import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
 import java.io.IOException;
 import java.io.Reader;
-import java.io.CSVReader;
+
 import java.io.FileReader;
 import java.io.File;
 import java.nio.file.Paths;
@@ -11,9 +11,9 @@ import java.util.Iterator;
 
 public class ej1{
 
-    public static void main(String[] args){
-        String carpetaCU = "/home/anne/Escritorio/RI/RI/P3/CapitulosUnidos";
-        String carpetaC = "/home/anne/Escritorio/RI/RI/P3/Capitulos";
+    public static void main(String[] args)throws IOException, CsvException{
+        String carpetaCU = "/home/anne/Escritorio/RI/P3/CapitulosUnidos";
+        String carpetaC = "/home/anne/Escritorio/RI/P3/Capitulos";
         
         double valoraciones=0;
         double votos=0;
