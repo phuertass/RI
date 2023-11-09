@@ -1,0 +1,21 @@
+<component name="libraryTable">
+  <library name="modules-thirdparty">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules-thirdparty/morfologik-fsa-2.1.9.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules-thirdparty/asm-tree-7.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules-thirdparty/morfologik-polish-2.1.9.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules-thirdparty/asm-commons-7.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules-thirdparty/antlr4-runtime-4.5.1-1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules-thirdparty/asm-7.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules-thirdparty/morfologik-ukrainian-search-4.9.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules-thirdparty/commons-codec-1.13.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules-thirdparty/morfologik-stemming-2.1.9.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules-thirdparty/icu4j-70.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules-thirdparty/opennlp-tools-1.9.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules-thirdparty/hppc-0.9.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules-thirdparty/asm-analysis-7.2.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

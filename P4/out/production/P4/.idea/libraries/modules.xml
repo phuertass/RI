@@ -1,0 +1,39 @@
+<component name="libraryTable">
+  <library name="modules">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules/lucene-misc-9.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules/lucene-demo-9.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules/lucene-queries-9.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules/lucene-backward-codecs-9.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules/lucene-analysis-smartcn-9.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules/lucene-memory-9.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules/lucene-classification-9.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules/lucene-monitor-9.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules/lucene-luke-9.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules/lucene-sandbox-9.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules/lucene-core-9.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules/lucene-suggest-9.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules/lucene-analysis-nori-9.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules/lucene-analysis-common-9.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules/lucene-facet-9.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules/lucene-highlighter-9.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules/lucene-codecs-9.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules/lucene-spatial3d-9.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules/lucene-spatial-extras-9.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules/lucene-analysis-phonetic-9.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules/lucene-join-9.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules/lucene-analysis-morfologik-9.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules/lucene-benchmark-9.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules/lucene-analysis-kuromoji-9.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules/lucene-queryparser-9.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules/lucene-grouping-9.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules/lucene-replicator-9.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules/lucene-analysis-icu-9.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules/lucene-analysis-stempel-9.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules/lucene-analysis-opennlp-9.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lucene-9.3.0/modules/lucene-expressions-9.3.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
