@@ -104,7 +104,6 @@ public class Indice {
         //indexar los capitulos unidos
         for (File csv : csvUnidos) {
             Document doc = new Document();
-            reader = null;
             try {
                 reader = new FileReader(csv);
             } catch (FileNotFoundException e) {
@@ -123,7 +122,7 @@ public class Indice {
                 }
                 if(!nextRecord[2].isEmpty()){
                     // spoken words TEXT
-                    doc.add(new org.apache.lucene.document.TextField(campos[2], nextRecord[2], org.apache.lucene.document.Field.Store.YES));
+                    doc.add(new org.apache.lucene.document.TextField(campos[2], nextRecord[2], org.apache.lucene.document.Field.Store.NO));
                 }
                 if(!nextRecord[3].isEmpty()){
                     // raw_text TEXT
@@ -139,12 +138,12 @@ public class Indice {
                     double imdbVotes = Double.parseDouble(nextRecord[5]);
                     int imdbVotesInt = (int) imdbVotes;
                     doc.add(new org.apache.lucene.document.IntPoint(campos[5], imdbVotesInt));
-                    doc.add(new org.apache.lucene.document.StoredField(campos[5], imdbVotesInt));
+                    //doc.add(new org.apache.lucene.document.StoredField(campos[5], imdbVotesInt));
                 }
                 if(!nextRecord[6].isEmpty()){
                     // numer in season INT
                     doc.add(new org.apache.lucene.document.IntPoint(campos[6], Integer.parseInt(nextRecord[6])));
-                    doc.add(new org.apache.lucene.document.StoredField(campos[6], Integer.parseInt(nextRecord[6])));
+                    //doc.add(new org.apache.lucene.document.StoredField(campos[6], Integer.parseInt(nextRecord[6])));
                 }
                 if(!nextRecord[7].isEmpty()){
                     // original air date
@@ -159,7 +158,7 @@ public class Indice {
                 if(!nextRecord[8].isEmpty()){
                     // original air year INT
                     doc.add(new org.apache.lucene.document.IntPoint(campos[8], Integer.parseInt(nextRecord[8])));
-                    doc.add(new org.apache.lucene.document.StoredField(campos[8], Integer.parseInt(nextRecord[8])));
+                    //doc.add(new org.apache.lucene.document.StoredField(campos[8], Integer.parseInt(nextRecord[8])));
                 }
                 if(!nextRecord[9].isEmpty()){
                     // season INT
@@ -180,11 +179,81 @@ public class Indice {
                     double views = Double.parseDouble(nextRecord[12]);
                     int viewsInt = (int) views;
                     doc.add(new org.apache.lucene.document.IntPoint(campos[12], viewsInt));
-                    doc.add(new org.apache.lucene.document.StoredField(campos[12], viewsInt));
+                    //doc.add(new org.apache.lucene.document.StoredField(campos[12], viewsInt));
                 }
             }
             writer.addDocument(doc);
 
+
+        }
+    }
+
+    public void indexarCapitulos() throws CsvValidationException, IOException {
+        Reader reader = null;
+        try {
+            reader = new FileReader(csvCaps[0]);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        CSVReader csvReader = new CSVReader(reader);
+        String[] firstLine;
+        firstLine = csvReader.readNext();
+        // Creamos un array de campos con la primera linea del csv
+        String[] campos = new String[firstLine.length];
+
+        for (int i = 0; i < firstLine.length; i++) {
+            campos[i] = firstLine[i];
+        }
+
+        System.out.println("\nCampos: ");
+        System.out.println("Size: " + campos.length);
+        for (String campo : campos) {
+            System.out.println(campo);
+        }
+
+        // indexar los capitulos
+        for (File csv : csvCaps) {
+            Document doc = new Document();
+            try {
+                reader = new FileReader(csv);
+            } catch (FileNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+            csvReader = new CSVReader(reader);
+
+            String[] nextRecord;
+            csvReader.readNext();
+
+            while ((nextRecord = csvReader.readNext()) != null) {
+                if (!nextRecord[1].isEmpty()) {
+                    // episode_id INT
+                    doc.add(new org.apache.lucene.document.IntPoint(campos[1], Integer.parseInt(nextRecord[1])));
+                    //doc.add(new org.apache.lucene.document.StoredField(campos[1], Integer.parseInt(nextRecord[1])));
+                }
+                if (!nextRecord[2].isEmpty()) {
+                    // number INT
+                    doc.add(new org.apache.lucene.document.IntPoint(campos[2], Integer.parseInt(nextRecord[2])));
+                    //doc.add(new org.apache.lucene.document.StoredField(campos[2], Integer.parseInt(nextRecord[2])));
+                }
+                if (!nextRecord[3].isEmpty()) {
+                    // timestamp in ms LONG
+                    doc.add(new org.apache.lucene.document.LongPoint(campos[3], Long.parseLong(nextRecord[3])));
+                    //doc.add(new org.apache.lucene.document.StoredField(campos[3], Long.parseLong(nextRecord[3])));
+                }
+                if (!nextRecord[4].isEmpty()) {
+                    // raw_text TEXT
+                    doc.add(new org.apache.lucene.document.TextField(campos[4], nextRecord[4], org.apache.lucene.document.Field.Store.YES));
+                }
+                if (!nextRecord[5].isEmpty()) {
+                    // raw location TEXT
+                    doc.add(new org.apache.lucene.document.TextField(campos[5], nextRecord[5], org.apache.lucene.document.Field.Store.YES));
+                }
+                if (!nextRecord[6].isEmpty()) {
+                    // spoken words TEXT
+                    doc.add(new org.apache.lucene.document.TextField(campos[6], nextRecord[6], org.apache.lucene.document.Field.Store.NO));
+                }
+            }
+            writer.addDocument(doc);
 
         }
     }
@@ -218,8 +287,14 @@ public class Indice {
         mi_indice.configurarIndice();
 
 
-        try {
+        /*try {
             mi_indice.indexarCapitulosUnidos();
+        } catch (CsvValidationException | IOException e) {
+            throw new RuntimeException(e);
+        }*/
+
+        try {
+            mi_indice.indexarCapitulos();
         } catch (CsvValidationException | IOException e) {
             throw new RuntimeException(e);
         }
