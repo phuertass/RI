@@ -19,6 +19,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 
+// PABLO HUERTAS ARROYO
+// ANNE SERRANO ANDRADES
+
 public class Indice {
     private Analyzer analyzer;
     private Similarity similarity;
@@ -275,7 +278,6 @@ public class Indice {
 
 	    // Analizador a utilizar
 		Analyzer analyzer = new StandardAnalyzer();
-		// Medida de Similitud (modelo de recuperacion) por defecto BM25
 		Similarity similarity = new ClassicSimilarity();
         // Llamar al constructor de la clase Indice
         Indice mi_indice = new Indice(analyzer, similarity);

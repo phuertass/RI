@@ -1,0 +1,14 @@
+En el main comentar o descomentar dependiendo del indice que se quiera
+
+try {
+    mi_indice.indexarCapitulosUnidos();
+} catch (CsvValidationException | IOException e) {
+    throw new RuntimeException(e);
+}
+
+try {
+    mi_indice.indexarCapitulos();
+} catch (CsvValidationException | IOException e) {
+    throw new RuntimeException(e);
+}
+
