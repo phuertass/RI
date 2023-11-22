@@ -109,37 +109,13 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
         	System.out.println("\n");
         	System.out.println("**********************************************************\n");
             System.out.println("Introduzca el campo sobre el que realizar la busqueda:\n");
-            System.out.println("(0) Sobre todos los campos\n(1) Busqueda por un solo campo\n(2) Busqueda por varios campos\n(3) Salir\n");
+            System.out.println("(1) Busqueda por un solo campo\n(2) Busqueda por varios campos\n(3) Salir\n");
             Scanner sc = new Scanner(System.in);
             int valor = sc.nextInt();
 
             switch(valor){
-            	//--------------------------------------------------------------------------------------------------
-            	//SOBRE TODOS LOS CAMPOS
-                case 0:
-                	System.out.println("**********************************************************\n");
-                	System.out.println("Introduzca el tipo de consulta que desea realizar:\n");
-                	System.out.println("(0) Consulta Generica\n(1) Boolean Query\n(2) Por frases\n");
-
-                    sc = new Scanner(System.in);
-                    valor = sc.nextInt();
-
-                    switch(valor){
-                        case 0:
-                        	documentos = ConsultaGenerica("TODO", analyzer);
-                            break;
-                        case 1:
-                            documentos = ConsultaBooleana("TODO", analyzer);
-                            break;
-                        case 2:
-                        	documentos = ConsultaFrase("TODO", analyzer);
-                        	break;
-                        default:
-                            System.out.println("Error");
-                            break;
-                    }
-
-                    break;
+            	
+                
  				
  				//--------------------------------------------------------------------------------------------------
                 //INTRODUCIR CONSULTA POR UN SOLO CAMPO MANUALMENTE    
@@ -218,20 +194,7 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
             e.printStackTrace();
         }
 	}
-    // private Set<String> obtenerTodosLosCampos() throws IOException {
-    //     Set<String> campos = new HashSet<>();
-    //     // Obtenemos el lector de índices
-    //     IndexReader reader = searcher.getIndexReader();
-
-    //     Fields fields = MultiFields.getFields(reader);
-    //     // Itera sobre los campos del esquema de índice
-    //     for (String campo : fields) {
-    //         // Agrega el nombre del campo al conjunto
-    //         campos.add(campo);
-    //     }
-
-    //     return campos;
-    // }
+    
 	public TopDocs ConsultaGenerica(String campo, Analyzer analyzer) throws IOException {
 		//creamos entrada y se redijire a buffer
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in , StandardCharsets.UTF_8));
@@ -253,101 +216,26 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
        
         //for(String campoActual:campos){
             try{
-                if ("TODO".equals(campo)) { //AQUI TENEMOS QUE USAR QUE BUSQUE EN TODOS LOS CAMPOS
-                   // MultiFieldQueryParser parser = new MultiFieldQueryParser(new String[]{campoActual}, analyzer);
-                query = parser.parse(line);
-                } else {
+               
                     QueryParser parser = new QueryParser(campo, analyzer);
                     query = parser.parse(line);
-                }
+                
         
                 docs = searcher.search(query, 10);
 
             }catch (org.apache.lucene.queryparser.classic.ParseException e){
-                System.out.println("¡¡¡Error en la consulta generica!!!");
+                System.out.println("---Error en la consulta---");
             }
         //}
         //mostramos documentos encontrados
         long totalHits = docs.totalHits.value;
         System.out.println("\n");
-        System.out.println("Hay: " + totalHits + " documentos encontrados");
+        System.out.println("Hay: " + totalHits + " documentos ");
         System.out.println("***********************************************\n");
         System.out.println("\n\n");
         return docs;
     }
 
-    public TopDocs ConsultaBooleana(String campo, Analyzer analyzer) throws IOException{
-    	//creamos entrada y se redijire a buffer
-        BufferedReader in = new BufferedReader(new InputStreamReader(System.in , StandardCharsets.UTF_8));
-        //parseo consulta
-        QueryParser parser = new QueryParser(campo, analyzer);
-
-       	System.out.println("***********************************************\n");
-       	System.out.println("Introduzca consulta: \n");
-
-       	//obtengo la consulta y la separo por los espacios en blanco para poder ver los campos
-        Scanner sc1 = new Scanner(System.in);
-       	String frase = sc1.nextLine();
-       	String[] todas = frase.split(" ");
-
-        BooleanQuery.Builder bqbuilder = new BooleanQuery.Builder();
-
-        Query q1 = null;
-
-        for(int i=0; i<todas.length; i++){
-            try{
-                q1 = parser.parse(todas[i]);
-            }catch(org.apache.lucene.queryparser.classic.ParseException e){
-            	System.out.println("¡¡¡Error en la consulta booleana!!!");
-            }
-
-            BooleanClause bc1 = new BooleanClause(q1, BooleanClause.Occur.MUST);
-            bqbuilder.add(bc1);
-        }
-
-        BooleanQuery bq = bqbuilder.build();
-      
-        //mostramos documentos
-        TopDocs tdocs = searcher.search(bq, 10);
-        long totalHits = tdocs.totalHits.value;
-        System.out.println("\n");
-        System.out.println("Hay: " + totalHits + " documentos encontrados");
-        System.out.println("***********************************************\n");
-        System.out.println("\n\n");
-        
-        return tdocs;
-    }
-
-    public TopDocs ConsultaFrase(String campo, Analyzer analyzer) throws IOException{
-        PhraseQuery.Builder pqbuilder = new PhraseQuery.Builder();
-
-        System.out.println("Introduzca la frase que quiere buscar (se mostraran los documentos que tengan la frase escrita en ese mismo orden): ");
-        Scanner sc = new Scanner(System.in);
-        String consulta = sc.nextLine();
-        //convertimos todo a minuscula
-        consulta=consulta.toLowerCase();
-        //separamos
-        String[] frase = consulta.split(" ");
-
-        //vemos cuales son sus campos
-        for(int i=0; i<frase.length; i++){ //recorro la frase
-            pqbuilder.add(new Term(campo, frase[i]), i); //busco por campos
-        }
-
-        PhraseQuery pq = pqbuilder.build();
-
-        //mostramos documentos
-        TopDocs tdocs = searcher.search(pq,10);
-
-        long totalHits = tdocs.totalHits.value;
-        System.out.println("\n");
-        System.out.println("Hay: " + totalHits + " documentos encontrados");
-        System.out.println("***********************************************\n");
-        System.out.println("\n\n");
-
-
-        return tdocs;
-    }
 
     public TopDocs ConsultaMultiple(Analyzer analyzer, String[] campos) throws IOException{
         int total=campos.length;
@@ -370,7 +258,7 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
             }
 
         }catch (org.apache.lucene.queryparser.classic.ParseException e){
-            System.out.println("Error en cadena consulta. ");
+            System.out.println("---Error en la consulta---");
         }
 
         BooleanClause[] bc=new BooleanClause[total];
@@ -383,7 +271,7 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
         TopDocs tdocs = searcher.search(bq, 10);
 
         System.out.println("\n");
-        System.out.println("Hay: " + tdocs.totalHits + " documentos encontrados");
+        System.out.println("Hay: " + tdocs.totalHits + " documentos ");
         System.out.println("***********************************************\n");
         System.out.println("\n\n");
 
@@ -404,7 +292,7 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
         System.out.println("Título: " + doc.get("title")); 
         System.out.println("Puntaje: " + hits[j].score);
         
-        System.out.println("Contenido: " + doc.toString()); // Ajusta según sea necesario
+        //System.out.println("Contenido: " + doc.toString()); // Arreglar
         System.out.println("\n---------------------------\n");
         }
 
