@@ -2,30 +2,33 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer; 
 import org.apache.lucene.document.*;
 import org.apache.lucene.queryparser.classic.QueryParser; 
+import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.index.Term;
 
 import java.io.*;
+import java.lang.reflect.Field;
 import java.util.*;
 import java.nio.file.Paths;
 import java.nio.file.Files;
 
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.Fields;
+import org.apache.lucene.index.MultiFields;
+import org.apache.lucene.index.IndexableField;
+import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
+import org.apache.lucene.search.IndexSearcher;
+
+import org.apache.lucene.index.FieldInfo;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.IntPoint;
-import org.apache.lucene.document.StoredField;
-import org.apache.lucene.document.TextField;
 import org.apache.lucene.search.similarities.ClassicSimilarity;
-import org.apache.lucene.document.Field;
-
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.index.DirectoryReader;
@@ -54,6 +57,7 @@ IndiceSearcher(String indexP){
         Directory dir = FSDirectory.open(Paths.get(indexPath));
         //Abrimos directorios
         reader = DirectoryReader.open(dir);
+        
         //buscadores
         searcher = new IndexSearcher(reader);
 	} catch (IOException e){
@@ -77,6 +81,7 @@ public static void main(String[] args) {
     Analyzer analyzer = new StandardAnalyzer();
     Similarity similarity = new ClassicSimilarity();
 
+    
     indice.indexSearch(analyzer, similarity); 
 }
 
@@ -87,10 +92,12 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
     try{
        //Directorio donde se encuentra el índice
         dir = FSDirectory.open(Paths.get(indexPath));
+         System.out.println(indexPath);
         //Creamos el objeto IndexSearcher y abrimos para lectura
         reader = DirectoryReader.open(dir);
 
         searcher = new IndexSearcher(reader);
+        //System.out.println("Número total de documentos en el índice: " + reader.numDocs());
         searcher.setSimilarity(similarity);
 
         //opciones
@@ -179,6 +186,7 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
                 if( hits.length >0){
                     System.out.println("¿Desea mostrar los documentos relacionados? ");
                     mostrar = (new Scanner(System.in)).nextLine().toLowerCase();
+                     //System.out.println(mostrar); 
                     System.out.println("\n"); 
 
                     //si es si, mostramos documentos
@@ -210,35 +218,55 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
             e.printStackTrace();
         }
 	}
+    // private Set<String> obtenerTodosLosCampos() throws IOException {
+    //     Set<String> campos = new HashSet<>();
+    //     // Obtenemos el lector de índices
+    //     IndexReader reader = searcher.getIndexReader();
 
+    //     Fields fields = MultiFields.getFields(reader);
+    //     // Itera sobre los campos del esquema de índice
+    //     for (String campo : fields) {
+    //         // Agrega el nombre del campo al conjunto
+    //         campos.add(campo);
+    //     }
+
+    //     return campos;
+    // }
 	public TopDocs ConsultaGenerica(String campo, Analyzer analyzer) throws IOException {
 		//creamos entrada y se redijire a buffer
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in , StandardCharsets.UTF_8));
-        //parseo consulta
-        QueryParser parser = new QueryParser(campo, analyzer);
-
+      
         String line;
         do{
         	System.out.println("***********************************************\n");
         	System.out.println("Introduzca consulta: \n");
         	//leo la linea
         	line = in.readLine(); 
+            
         }while(line == null || line.length() <= 0); //hasta que line sea null o 0
     	
     	//quitamos espacios en blancos al principio y al final
         line = line.trim();
-    
 
         TopDocs docs = null; //este para mostrar los relevantes
         Query query = null;
+       
+        //for(String campoActual:campos){
+            try{
+                if ("TODO".equals(campo)) { //AQUI TENEMOS QUE USAR QUE BUSQUE EN TODOS LOS CAMPOS
+                   // MultiFieldQueryParser parser = new MultiFieldQueryParser(new String[]{campoActual}, analyzer);
+                query = parser.parse(line);
+                } else {
+                    QueryParser parser = new QueryParser(campo, analyzer);
+                    query = parser.parse(line);
+                }
+        
+                docs = searcher.search(query, 10);
 
-        try{
-            query = parser.parse(line);
-            docs = searcher.search(query, 10);
-        }catch (org.apache.lucene.queryparser.classic.ParseException e){
-            System.out.println("¡¡¡Error en la consulta generica!!!");
-        }
-
+            }catch (org.apache.lucene.queryparser.classic.ParseException e){
+                System.out.println("¡¡¡Error en la consulta generica!!!");
+            }
+        //}
         //mostramos documentos encontrados
         long totalHits = docs.totalHits.value;
         System.out.println("\n");
@@ -293,7 +321,7 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
     public TopDocs ConsultaFrase(String campo, Analyzer analyzer) throws IOException{
         PhraseQuery.Builder pqbuilder = new PhraseQuery.Builder();
 
-        System.out.println("Introduzca la frase que quiere buscar (se mostraran las peliculas/series que tengan la frase escrita en ese mismo orden): ");
+        System.out.println("Introduzca la frase que quiere buscar (se mostraran los documentos que tengan la frase escrita en ese mismo orden): ");
         Scanner sc = new Scanner(System.in);
         String consulta = sc.nextLine();
         //convertimos todo a minuscula
@@ -367,9 +395,17 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
     	ScoreDoc[] hits = docs.scoreDocs;
 
         for(int j=0; j<hits.length; j++){
-
+            int docId = hits[j].doc;
         	//buscamos en el documento
         	Document doc = searcher.doc(hits[j].doc);
+
+            System.out.println("Documento #" + (j + 1));
+        System.out.println("ID: " + doc.get("episode_id"));
+        System.out.println("Título: " + doc.get("title")); 
+        System.out.println("Puntaje: " + hits[j].score);
+        
+        System.out.println("Contenido: " + doc.toString()); // Ajusta según sea necesario
+        System.out.println("\n---------------------------\n");
         }
 
     }

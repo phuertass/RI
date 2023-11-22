@@ -289,17 +289,17 @@ public class Indice {
         mi_indice.configurarIndice();
 
 
-        /*try {
+        try {
             mi_indice.indexarCapitulosUnidos();
         } catch (CsvValidationException | IOException e) {
             throw new RuntimeException(e);
-        }*/
+        }
 
-        try {
+        /*try {
             mi_indice.indexarCapitulos();
         } catch (CsvValidationException | IOException e) {
             throw new RuntimeException(e);
-        }
+        }*/
 
         mi_indice.close();
 
