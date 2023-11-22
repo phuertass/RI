@@ -39,14 +39,15 @@ import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.PhraseQuery;
 
 
-
+//ANNE SERRANO ANDRADES
+//PABLO HUERTAS ARROYO
 
 public class IndiceSearcher {
 
-private  String indexPath; 				//ubicacion del indice
-private  IndexSearcher searcher;         //busador indices
-private  QueryParser parser;             //Parsear Queries
-private  IndexReader reader;             //Lector de índices
+private  String indexPath; 				
+private  IndexSearcher searcher;         
+private  QueryParser parser;             
+private  IndexReader reader;             
 
 
 IndiceSearcher(String indexP){
@@ -118,7 +119,7 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
                 
  				
  				//--------------------------------------------------------------------------------------------------
-                //INTRODUCIR CONSULTA POR UN SOLO CAMPO MANUALMENTE    
+                // UN SOLO CAMPO 
                 case 1:
                 	System.out.println("**********************************************************\n");
                 	System.out.println("Introduzca el campo por el que desea buscar");
@@ -126,7 +127,7 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
 					BufferedReader in = new BufferedReader(new InputStreamReader(System.in , StandardCharsets.UTF_8));
 				    line = in.readLine();
 
-				    //hacemos consulta generica solo porque solo podemos buscar por un campo
+				    
 				    documentos = ConsultaGenerica(line, analyzer);
             		break;
 
@@ -146,26 +147,26 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
                 //--------------------------------------------------------------------------------------------------    
                 //SALIR
                 case 3:
-                    System.out.println("Busqueda cerrada.\n");
+                    
                     return;
 
 				//--------------------------------------------------------------------------------------------------	
-				//CUALQUIER OTRA OPCION QUE NO SEA DE LAS QUE DA EL MENU
+				//CUALQUIER OTRA OPCION 
                 default:
                     System.out.println("Error: Opcion no valida");
                     break;
         	}
 
-        		//VEMOS DOCUMENTOS RELEVANTES
+        		// DOCUMENTOS RELEVANTES
                 ScoreDoc[] hits = documentos.scoreDocs;
 
                 if( hits.length >0){
-                    System.out.println("¿Desea mostrar los documentos relacionados? ");
+                    System.out.println("¿Desea mostrar los 10 documentos más relevantes ? ");
                     mostrar = (new Scanner(System.in)).nextLine().toLowerCase();
                      //System.out.println(mostrar); 
                     System.out.println("\n"); 
 
-                    //si es si, mostramos documentos
+                    
                     if(mostrar.equals("si")){
                         mostrarDocumentos(documentos);
                     }
@@ -263,7 +264,7 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
 
         BooleanClause[] bc=new BooleanClause[total];
         for(int i=0; i<total; i++){
-            bc[i]=new BooleanClause(q[i], BooleanClause.Occur.MUST);
+            bc[i]=new BooleanClause(q[i], BooleanClause.Occur.MUST); //AND LÓGICO
             bqbuilder.add(bc[i]);
         }
 
@@ -290,7 +291,7 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
             System.out.println("Documento #" + (j + 1));
         System.out.println("ID: " + doc.get("episode_id"));
         System.out.println("Título: " + doc.get("title")); 
-        System.out.println("Puntaje: " + hits[j].score);
+        System.out.println("Puntuación: " + hits[j].score);
         
         //System.out.println("Contenido: " + doc.toString()); // Arreglar
         System.out.println("\n---------------------------\n");
