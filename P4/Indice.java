@@ -118,39 +118,50 @@ public class Indice {
 
             String[] nextRecord;
 
+            String todo = new String();
+			todo = todo.trim();
+
             csvReader.readNext();
             while ((nextRecord = csvReader.readNext()) != null){
+
                 if(!nextRecord[1].isEmpty()){
                     // episode_id INT
+                    todo += nextRecord[1];
                     doc.add(new org.apache.lucene.document.IntPoint(campos[1], Integer.parseInt(nextRecord[1])));
                     doc.add(new org.apache.lucene.document.StoredField(campos[1], Integer.parseInt(nextRecord[1])));
                 }
                 if(!nextRecord[2].isEmpty()){
                     // spoken words TEXT
+                    todo += nextRecord[2];
                     doc.add(new org.apache.lucene.document.TextField(campos[2], nextRecord[2], org.apache.lucene.document.Field.Store.NO));
                 }
                 if(!nextRecord[3].isEmpty()){
                     // raw_text TEXT
+                    todo += nextRecord[3];
                     doc.add(new org.apache.lucene.document.TextField(campos[3], nextRecord[3], org.apache.lucene.document.Field.Store.YES));
                 }
                 if(!nextRecord[4].isEmpty()){
                     // imdb rating DOUBLE
+                    todo += nextRecord[4];
                     doc.add(new org.apache.lucene.document.DoublePoint(campos[4], Double.parseDouble(nextRecord[4])));
                     doc.add(new org.apache.lucene.document.StoredField(campos[4], Double.parseDouble(nextRecord[4])));
                 }
                 if(!nextRecord[5].isEmpty()){
                     // imdb votes INT
+                    todo += nextRecord[5];
                     double imdbVotes = Double.parseDouble(nextRecord[5]);
                     int imdbVotesInt = (int) imdbVotes;
                     doc.add(new org.apache.lucene.document.IntPoint(campos[5], imdbVotesInt));
                     //doc.add(new org.apache.lucene.document.StoredField(campos[5], imdbVotesInt));
                 }
                 if(!nextRecord[6].isEmpty()){
+                    todo += nextRecord[6];
                     // numer in season INT
                     doc.add(new org.apache.lucene.document.IntPoint(campos[6], Integer.parseInt(nextRecord[6])));
                     //doc.add(new org.apache.lucene.document.StoredField(campos[6], Integer.parseInt(nextRecord[6])));
                 }
                 if(!nextRecord[7].isEmpty()){
+                    todo += nextRecord[7];
                     // original air date
                     try {
                         Date date = new SimpleDateFormat("yyyy-MM-dd").parse(nextRecord[7]);
@@ -161,25 +172,30 @@ public class Indice {
                     }
                 }
                 if(!nextRecord[8].isEmpty()){
+                    todo += nextRecord[8];
                     // original air year INT
                     doc.add(new org.apache.lucene.document.IntPoint(campos[8], Integer.parseInt(nextRecord[8])));
                     //doc.add(new org.apache.lucene.document.StoredField(campos[8], Integer.parseInt(nextRecord[8])));
                 }
                 if(!nextRecord[9].isEmpty()){
+                    todo += nextRecord[9];
                     // season INT
                     doc.add(new org.apache.lucene.document.IntPoint(campos[9], Integer.parseInt(nextRecord[9])));
                     doc.add(new org.apache.lucene.document.StoredField(campos[9], Integer.parseInt(nextRecord[9])));
                 }
                 if(!nextRecord[10].isEmpty()){
+                    todo += nextRecord[10];
                     // title TEXT
                     doc.add(new org.apache.lucene.document.TextField(campos[10], nextRecord[10], org.apache.lucene.document.Field.Store.YES));
                 }
                 if(!nextRecord[11].isEmpty()){
+                    todo += nextRecord[11];
                     // us viewsers in millions DOUBLE
                     doc.add(new org.apache.lucene.document.DoublePoint(campos[11], Double.parseDouble(nextRecord[11])));
                     doc.add(new org.apache.lucene.document.StoredField(campos[11], Double.parseDouble(nextRecord[11])));
                 }
                 if(!nextRecord[12].isEmpty()){
+                    todo += nextRecord[12];
                     // views INT
                     double views = Double.parseDouble(nextRecord[12]);
                     int viewsInt = (int) views;
@@ -187,6 +203,7 @@ public class Indice {
                     //doc.add(new org.apache.lucene.document.StoredField(campos[12], viewsInt));
                 }
             }
+            doc.add(new org.apache.lucene.document.TextField("TODO", todo, org.apache.lucene.document.TextField.Store.YES));
             writer.addDocument(doc);
 
 
@@ -255,7 +272,7 @@ public class Indice {
                 }
                 if (!nextRecord[6].isEmpty()) {
                     // spoken words TEXT
-                    doc.add(new org.apache.lucene.document.TextField(campos[6], nextRecord[6], org.apache.lucene.document.Field.Store.NO));
+                    doc.add(new org.apache.lucene.document.TextField(campos[6], nextRecord[6], org.apache.lucene.document.Field.Store.YES));
                 }
             }
             writer.addDocument(doc);
