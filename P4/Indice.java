@@ -3,6 +3,7 @@ import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -17,25 +18,26 @@ import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
-
-// PABLO HUERTAS ARROYO
-// ANNE SERRANO ANDRADES
 
 public class Indice {
     private Analyzer analyzer;
     private Similarity similarity;
     private FSDirectory dir;
     private IndexWriter writer;
-    String indexPath = "index";
+
+    private String indexPath;
 
     File[] csvUnidos;
     File[] csvCaps;
 
     //constructor de copia
-    Indice(Analyzer ana, Similarity simi){
+    Indice(Analyzer ana, Similarity simi, String indexP){
         analyzer=ana;
         similarity=simi;
+        indexPath = indexP;
     }
 
     public void initialize(){
@@ -231,7 +233,7 @@ public class Indice {
                 if (!nextRecord[1].isEmpty()) {
                     // episode_id INT
                     doc.add(new org.apache.lucene.document.IntPoint(campos[1], Integer.parseInt(nextRecord[1])));
-                    //doc.add(new org.apache.lucene.document.StoredField(campos[1], Integer.parseInt(nextRecord[1])));
+                    doc.add(new org.apache.lucene.document.StoredField(campos[1], Integer.parseInt(nextRecord[1])));
                 }
                 if (!nextRecord[2].isEmpty()) {
                     // number INT
@@ -273,14 +275,32 @@ public class Indice {
 
 
 
-    public static void main (String[] args) {
-        System.out.println("Creando índice...\n");
+    public static void main(String[] args) {
+        if (args.length < 2) {
+            System.out.println("Se requieren al menos dos argumentos: indexPath y opción (1 o 2)");
+            return;
+        }
 
-	    // Analizador a utilizar
-		Analyzer analyzer = new StandardAnalyzer();
-		Similarity similarity = new ClassicSimilarity();
-        // Llamar al constructor de la clase Indice
-        Indice mi_indice = new Indice(analyzer, similarity);
+        String indexPath = args[0];
+        int opcion = Integer.parseInt(args[1]);
+
+        System.out.println("Creando índice en: " + indexPath + "\n");
+
+        Analyzer analyzer = new StandardAnalyzer();
+
+        //Analyzer defaultAnalyzer = new StandardAnalyzer();
+
+        Map<String, Analyzer> analyzerPerField = new HashMap<>();
+        analyzerPerField.put("spoken_words", new StandardAnalyzer());
+        analyzerPerField.put("title", new StandardAnalyzer());
+        analyzerPerField.put("raw_character_text", new StandardAnalyzer());
+        analyzerPerField.put("raw_location_text", new StandardAnalyzer());
+
+        //PerFieldAnalyzerWrapper analyzer = new PerFieldAnalyzerWrapper(defaultAnalyzer, analyzerPerField);
+
+        Similarity similarity = new ClassicSimilarity();
+
+        Indice mi_indice = new Indice(analyzer, similarity, indexPath);
 
         System.out.println("Analizador: " + mi_indice.analyzer.getClass().getName());
         System.out.println("Modelo de recuperación: " + mi_indice.similarity.getClass().getName());
@@ -288,21 +308,19 @@ public class Indice {
         mi_indice.initialize();
         mi_indice.configurarIndice();
 
-
         try {
-            mi_indice.indexarCapitulosUnidos();
+            if (opcion == 1) {
+                mi_indice.indexarCapitulosUnidos();
+            } else if (opcion == 2) {
+                mi_indice.indexarCapitulos();
+            } else {
+                System.out.println("Opción no válida. Debe ser 1 o 2.");
+            }
         } catch (CsvValidationException | IOException e) {
             throw new RuntimeException(e);
         }
 
-        /*try {
-            mi_indice.indexarCapitulos();
-        } catch (CsvValidationException | IOException e) {
-            throw new RuntimeException(e);
-        }*/
-
         mi_indice.close();
-
-
     }
+
 }
