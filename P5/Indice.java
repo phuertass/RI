@@ -137,8 +137,6 @@ public class Indice {
                 if(!nextRecord[1].isEmpty()){
                     // episode_id INT
                     todo += nextRecord[1];
-
-
                     doc.add(new org.apache.lucene.document.StringField(campos[1], nextRecord[1].trim(), org.apache.lucene.document.Field.Store.YES)); //votes
                     doc.add(new org.apache.lucene.document.NumericDocValuesField(campos[1], Long.valueOf(nextRecord[1].trim()))); //votes
 
@@ -261,37 +259,48 @@ public class Indice {
             String[] nextRecord;
             csvReader.readNext();
 
+            String todo = new String();
+			todo = todo.trim();
+
             while ((nextRecord = csvReader.readNext()) != null) {
                 if (!nextRecord[1].isEmpty()) {
+                    todo += nextRecord[1];
+
                     // episode_id INT
                     doc.add(new org.apache.lucene.document.IntPoint(campos[1], Integer.parseInt(nextRecord[1])));
                     doc.add(new org.apache.lucene.document.StoredField(campos[1], Integer.parseInt(nextRecord[1])));
                 }
                 if (!nextRecord[2].isEmpty()) {
+                    todo += nextRecord[2];
                     // number INT
                     doc.add(new org.apache.lucene.document.IntPoint(campos[2], Integer.parseInt(nextRecord[2])));
                     //doc.add(new org.apache.lucene.document.StoredField(campos[2], Integer.parseInt(nextRecord[2])));
                 }
                 if (!nextRecord[3].isEmpty()) {
+                    todo += nextRecord[3];
                     // timestamp in ms LONG
                     doc.add(new org.apache.lucene.document.LongPoint(campos[3], Long.parseLong(nextRecord[3])));
                     //doc.add(new org.apache.lucene.document.StoredField(campos[3], Long.parseLong(nextRecord[3])));
                 }
                 if (!nextRecord[4].isEmpty()) {
+                    todo += nextRecord[4];
                     // raw_text TEXT
                     doc.add(new org.apache.lucene.document.TextField(campos[4], nextRecord[4], org.apache.lucene.document.Field.Store.YES));
                 }
                 if (!nextRecord[5].isEmpty()) {
+                    todo += nextRecord[5];
                     // raw location TEXT
                     doc.add(new org.apache.lucene.document.TextField(campos[5], nextRecord[5], org.apache.lucene.document.Field.Store.YES));
                 }
                 if (!nextRecord[6].isEmpty()) {
+                    todo += nextRecord[6];
                     // spoken words TEXT
                     doc.add(new org.apache.lucene.document.TextField(campos[6], nextRecord[6], org.apache.lucene.document.Field.Store.YES));
                 }
             }
-            writer.addDocument(doc);
 
+            doc.add(new org.apache.lucene.document.TextField("TODO", todo, org.apache.lucene.document.TextField.Store.YES));
+            writer.addDocument(doc);
         }
     }
 
