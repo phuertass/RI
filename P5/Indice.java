@@ -2,6 +2,8 @@
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
+import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 
 import org.apache.lucene.document.Document;
@@ -9,8 +11,12 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.search.similarities.ClassicSimilarity;
 import org.apache.lucene.search.similarities.Similarity;
-import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
+
+import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyWriter;
+import org.apache.lucene.facet.FacetsConfig;
+
 
 import java.io.*;
 import java.lang.*;
@@ -29,6 +35,11 @@ public class Indice {
     private IndexWriter writer;
 
     private String indexPath;
+
+    private String facetPath = "./facet";
+    private FacetsConfig fconfig;
+    private DirectoryTaxonomyWriter taxoWriter;
+
 
     File[] csvUnidos;
     File[] csvCaps;
@@ -78,6 +89,15 @@ public class Indice {
             throw new RuntimeException(e);
         }
 
+        //localizacion faceta
+        try {
+            FSDirectory taxoDir = FSDirectory.open(Paths.get(facetPath));
+            //creamos faceta
+            fconfig = new FacetsConfig();
+            taxoWriter = new DirectoryTaxonomyWriter(taxoDir);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         System.out.println("\nIndice configurado correctamente");
 
     }
@@ -134,14 +154,16 @@ public class Indice {
             csvReader.readNext();
             while ((nextRecord = csvReader.readNext()) != null){
 
+                //CONFIGURAMOS FACETAS
+                fconfig.setMultiValued("imdb_rating", true);
+                fconfig.setMultiValued("numer_in_season", true);
+
+
                 if(!nextRecord[1].isEmpty()){
                     // episode_id INT
-                    todo += nextRecord[1];
-                    doc.add(new org.apache.lucene.document.StringField(campos[1], nextRecord[1].trim(), org.apache.lucene.document.Field.Store.YES)); //votes
-                    doc.add(new org.apache.lucene.document.NumericDocValuesField(campos[1], Long.valueOf(nextRecord[1].trim()))); //votes
-
-                    //doc.add(new org.apache.lucene.document.IntPoint(campos[1], Integer.parseInt(nextRecord[1])));
-                    //doc.add(new org.apache.lucene.document.StoredField(campos[1], Integer.parseInt(nextRecord[1])));
+                    todo += nextRecord[1].trim();
+                    doc.add(new org.apache.lucene.document.StringField(campos[1], nextRecord[1].trim(), org.apache.lucene.document.Field.Store.YES));
+                    doc.add(new org.apache.lucene.document.NumericDocValuesField(campos[1], Long.valueOf(nextRecord[1].trim())));
                 }
                 if(!nextRecord[2].isEmpty()){
                     // spoken words TEXT
@@ -155,29 +177,39 @@ public class Indice {
                 }
                 if(!nextRecord[4].isEmpty()){
                     // imdb rating DOUBLE
-                    todo += nextRecord[4];
-                    doc.add(new org.apache.lucene.document.DoublePoint(campos[4], Double.parseDouble(nextRecord[4])));
+                    todo += nextRecord[4].trim();
+                    doc.add(new org.apache.lucene.document.StringField(campos[4], nextRecord[4].trim(), org.apache.lucene.document.Field.Store.YES));
                     doc.add(new org.apache.lucene.document.StoredField(campos[4], Double.parseDouble(nextRecord[4])));
+                    doc.add(new org.apache.lucene.facet.FacetField(campos[4], nextRecord[4].trim()));
                 }
+
                 if(!nextRecord[5].isEmpty()){
+
                     // imdb votes INT
-                    todo += nextRecord[5];
                     double imdbVotes = Double.parseDouble(nextRecord[5]);
                     int imdbVotesInt = (int) imdbVotes;
-                    doc.add(new org.apache.lucene.document.IntPoint(campos[5], imdbVotesInt));
-                    //doc.add(new org.apache.lucene.document.StoredField(campos[5], imdbVotesInt));
+                    todo += imdbVotesInt;
+
+                    doc.add(new org.apache.lucene.document.StringField(campos[5], nextRecord[5].trim(), org.apache.lucene.document.Field.Store.YES));
+                    doc.add(new org.apache.lucene.document.NumericDocValuesField(campos[5], imdbVotesInt));
+
+
                 }
                 if(!nextRecord[6].isEmpty()){
-                    todo += nextRecord[6];
                     // numer in season INT
-                    doc.add(new org.apache.lucene.document.IntPoint(campos[6], Integer.parseInt(nextRecord[6])));
-                    //doc.add(new org.apache.lucene.document.StoredField(campos[6], Integer.parseInt(nextRecord[6])));
+                    todo += nextRecord[6].trim();
+                    doc.add(new org.apache.lucene.document.StringField(campos[6], nextRecord[6].trim(), org.apache.lucene.document.Field.Store.YES));
+                    doc.add(new org.apache.lucene.document.NumericDocValuesField(campos[6], Long.valueOf(nextRecord[6].trim())));
+                    doc.add(new org.apache.lucene.facet.FacetField(campos[6], nextRecord[6].trim()));
+
                 }
                 if(!nextRecord[7].isEmpty()){
                     todo += nextRecord[7];
                     // original air date
                     try {
                         Date date = new SimpleDateFormat("yyyy-MM-dd").parse(nextRecord[7]);
+                        todo += date.toString();
+
                         doc.add(new org.apache.lucene.document.LongPoint(campos[7], date.getTime()));
                         doc.add(new org.apache.lucene.document.StoredField(campos[7], date.getTime()));
                     } catch (ParseException e) {
@@ -185,41 +217,46 @@ public class Indice {
                     }
                 }
                 if(!nextRecord[8].isEmpty()){
-                    todo += nextRecord[8];
                     // original air year INT
-                    doc.add(new org.apache.lucene.document.IntPoint(campos[8], Integer.parseInt(nextRecord[8])));
-                    //doc.add(new org.apache.lucene.document.StoredField(campos[8], Integer.parseInt(nextRecord[8])));
+
+                    todo += nextRecord[8].trim();
+                    doc.add(new org.apache.lucene.document.StringField(campos[8], nextRecord[8].trim(), org.apache.lucene.document.Field.Store.YES));
+                    doc.add(new org.apache.lucene.document.NumericDocValuesField(campos[8], Long.valueOf(nextRecord[8].trim())));
                 }
                 if(!nextRecord[9].isEmpty()){
-                    todo += nextRecord[9];
                     // season INT
-                    doc.add(new org.apache.lucene.document.IntPoint(campos[9], Integer.parseInt(nextRecord[9])));
-                    doc.add(new org.apache.lucene.document.StoredField(campos[9], Integer.parseInt(nextRecord[9])));
+
+                    todo += nextRecord[9].trim();
+                    doc.add(new org.apache.lucene.document.StringField(campos[9], nextRecord[9].trim(), org.apache.lucene.document.Field.Store.YES));
+                    doc.add(new org.apache.lucene.document.NumericDocValuesField(campos[9], Long.valueOf(nextRecord[9].trim())));
+
                 }
                 if(!nextRecord[10].isEmpty()){
-                    todo += nextRecord[10];
+                    todo += nextRecord[10].trim();
                     // title TEXT
                     doc.add(new org.apache.lucene.document.TextField(campos[10], nextRecord[10], org.apache.lucene.document.Field.Store.YES));
                 }
                 if(!nextRecord[11].isEmpty()){
-                    todo += nextRecord[11];
+
                     // us viewsers in millions DOUBLE
-                    doc.add(new org.apache.lucene.document.DoublePoint(campos[11], Double.parseDouble(nextRecord[11])));
+                    todo += nextRecord[11].trim();
+                    doc.add(new org.apache.lucene.document.StringField(campos[11], nextRecord[11].trim(), org.apache.lucene.document.Field.Store.YES));
                     doc.add(new org.apache.lucene.document.StoredField(campos[11], Double.parseDouble(nextRecord[11])));
                 }
                 if(!nextRecord[12].isEmpty()){
-                    todo += nextRecord[12];
+
                     // views INT
                     double views = Double.parseDouble(nextRecord[12]);
-                    int viewsInt = (int) views;
-                    doc.add(new org.apache.lucene.document.IntPoint(campos[12], viewsInt));
-                    //doc.add(new org.apache.lucene.document.StoredField(campos[12], viewsInt));
+                    int viewsInt= (int) views;
+                    todo += viewsInt;
+
+                    doc.add(new org.apache.lucene.document.StringField(campos[12], nextRecord[12].trim(), org.apache.lucene.document.Field.Store.YES));
+                    doc.add(new org.apache.lucene.document.NumericDocValuesField(campos[12], viewsInt));
                 }
             }
+
             doc.add(new org.apache.lucene.document.TextField("TODO", todo, org.apache.lucene.document.TextField.Store.YES));
             writer.addDocument(doc);
-
-
         }
     }
 
@@ -327,17 +364,17 @@ public class Indice {
 
         System.out.println("Creando índice en: " + indexPath + "\n");
 
-        Analyzer analyzer = new StandardAnalyzer();
+        //Analyzer analyzer = new StandardAnalyzer();
 
-        //Analyzer defaultAnalyzer = new StandardAnalyzer();
+        Analyzer defaultAnalyzer = new WhitespaceAnalyzer();
 
         Map<String, Analyzer> analyzerPerField = new HashMap<>();
-        analyzerPerField.put("spoken_words", new StandardAnalyzer());
-        analyzerPerField.put("title", new StandardAnalyzer());
-        analyzerPerField.put("raw_character_text", new StandardAnalyzer());
-        analyzerPerField.put("raw_location_text", new StandardAnalyzer());
+        analyzerPerField.put("spoken_words", new EnglishAnalyzer());
+        analyzerPerField.put("title", new EnglishAnalyzer());
+        analyzerPerField.put("raw_character_text", new EnglishAnalyzer());
+        analyzerPerField.put("raw_location_text", new EnglishAnalyzer());
 
-        //PerFieldAnalyzerWrapper analyzer = new PerFieldAnalyzerWrapper(defaultAnalyzer, analyzerPerField);
+        PerFieldAnalyzerWrapper analyzer = new PerFieldAnalyzerWrapper(defaultAnalyzer, analyzerPerField);
 
         Similarity similarity = new ClassicSimilarity();
 
