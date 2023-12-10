@@ -4,27 +4,96 @@
  */
 package ri_pfinal;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import javax.swing.DefaultListModel;
-import javax.swing.JOptionPane;
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
+import org.apache.lucene.document.*;
 import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
 
+import java.io.*;
+import java.util.*;
+import java.nio.file.Paths;
+
+
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.search.similarities.Similarity;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
+import org.apache.lucene.analysis.en.EnglishAnalyzer;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
+import org.apache.lucene.search.similarities.ClassicSimilarity;
+import org.apache.lucene.analysis.CharArraySet;
+
+
+import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyWriter;
+import org.apache.lucene.facet.taxonomy.TaxonomyReader;
+import org.apache.lucene.facet.taxonomy.FastTaxonomyFacetCounts;
+import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyReader;
+import org.apache.lucene.facet.FacetsCollector;
+import org.apache.lucene.facet.DrillDownQuery;
+import org.apache.lucene.facet.FacetsConfig;
+import org.apache.lucene.facet.FacetField;
+import org.apache.lucene.facet.Facets;
+import org.apache.lucene.facet.FacetResult;
+import org.apache.lucene.facet.LabelAndValue;
+
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.DirectoryReader;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.PhraseQuery;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.BooleanQuery.Builder;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.search.BooleanClause.Occur;
+import org.apache.lucene.util.QueryBuilder;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import javax.swing.JOptionPane;
+import org.apache.lucene.facet.DrillSideways;
+import org.apache.lucene.queryparser.classic.ParseException;
+import java.awt.Color;
+import org.apache.lucene.store.Directory;
 /**
  *
  * @author anne
  */
 public class interfaz extends javax.swing.JFrame {
-    private Ri_pfinal busqueda;
+    private Searcher busqueda;
+    String resultado_busqueda;
+    String[] matriz;
+    String [] campos=new String[]{};
+    String coleccion;
+    String dir;
+    Directory directorio;
+    
+    
+    private Boolean[][] filtros=new Boolean[][]{{false, false, false},{false,false,false},{false,false,false},{false,false,false}};
+   
     /**
      * Creates new form interfaz
      */
     public interfaz() {
         initComponents();
-        busqueda = new Ri_pfinal("index", txtConsulta, botonConsulta, opcionesIndice);
+        busqueda = new Searcher();
+        resultado_busqueda=new String();
     }
 
     /**
@@ -38,15 +107,16 @@ public class interfaz extends javax.swing.JFrame {
 
         txtConsulta = new javax.swing.JTextField();
         botonConsulta = new javax.swing.JButton();
-        opcionesIndice = new javax.swing.JComboBox<>();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        camposGuiones = new javax.swing.JList<>();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        camposCapitulos = new javax.swing.JList<>();
-        jScrollPane3 = new javax.swing.JScrollPane();
-        opcionesBusqueda = new javax.swing.JList<>();
-        jScrollPane4 = new javax.swing.JScrollPane();
-        resultadoBusqueda = new javax.swing.JTextArea();
+        jLabel1 = new javax.swing.JLabel();
+        tipoConsulta = new javax.swing.JComboBox<>();
+        jLabel2 = new javax.swing.JLabel();
+        tipoColeccion = new javax.swing.JComboBox<>();
+        spoken_words = new javax.swing.JCheckBox();
+        raw_character_text = new javax.swing.JCheckBox();
+        imdb_rating = new javax.swing.JCheckBox();
+        original_air_date = new javax.swing.JCheckBox();
+        season = new javax.swing.JCheckBox();
+        title = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -64,81 +134,125 @@ public class interfaz extends javax.swing.JFrame {
             }
         });
 
-        opcionesIndice.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Guiones", "Capítulos" }));
+        jLabel1.setText("Tipo de consulta");
 
-        camposGuiones.setModel(new javax.swing.AbstractListModel<String>() {
-            String[] strings = { "ID", "Número de episodio", "Tiempo de diálogo", "Personaje", "Localizacion", "Diálogo" };
-            public int getSize() { return strings.length; }
-            public String getElementAt(int i) { return strings[i]; }
+        tipoConsulta.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Consulta Generica", "Consulta Booleana", "Consulta Frases", "Consulta Multiple" }));
+
+        jLabel2.setText("Colección");
+
+        tipoColeccion.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Guiones", "Capitulos" }));
+
+        spoken_words.setText("Dialogo");
+        spoken_words.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                spoken_wordsActionPerformed(evt);
+            }
         });
-        jScrollPane1.setViewportView(camposGuiones);
 
-        camposCapitulos.setModel(new javax.swing.AbstractListModel<String>() {
-            String[] strings = { "Camposcapitulosç", "añadir", "chsd", "d", "d", "d", " " };
-            public int getSize() { return strings.length; }
-            public String getElementAt(int i) { return strings[i]; }
+        raw_character_text.setText("Personaje");
+        raw_character_text.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                raw_character_textActionPerformed(evt);
+            }
         });
-        jScrollPane2.setViewportView(camposCapitulos);
 
-        opcionesBusqueda.setModel(new javax.swing.AbstractListModel<String>() {
-            String[] strings = { "Opciones busqueda", "1", "2", "3", " " };
-            public int getSize() { return strings.length; }
-            public String getElementAt(int i) { return strings[i]; }
+        imdb_rating.setText("Puntuación");
+        imdb_rating.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                imdb_ratingActionPerformed(evt);
+            }
         });
-        jScrollPane3.setViewportView(opcionesBusqueda);
 
-        resultadoBusqueda.setColumns(20);
-        resultadoBusqueda.setRows(5);
-        jScrollPane4.setViewportView(resultadoBusqueda);
+        original_air_date.setText("Fecha de estreno");
+        original_air_date.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                original_air_dateActionPerformed(evt);
+            }
+        });
+
+        season.setText("Temporada");
+        season.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                seasonActionPerformed(evt);
+            }
+        });
+
+        title.setText("Título");
+        title.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                titleActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGap(66, 66, 66)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(100, 100, 100)
-                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(112, 112, 112)
-                        .addComponent(botonConsulta))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(layout.createSequentialGroup()
+                                    .addComponent(jLabel2)
+                                    .addGap(18, 18, 18)
+                                    .addComponent(tipoColeccion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGroup(layout.createSequentialGroup()
+                                    .addComponent(jLabel1)
+                                    .addGap(70, 70, 70)
+                                    .addComponent(tipoConsulta, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGroup(layout.createSequentialGroup()
+                                    .addComponent(txtConsulta, javax.swing.GroupLayout.PREFERRED_SIZE, 603, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGap(30, 30, 30)
+                                    .addComponent(botonConsulta)))
+                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(spoken_words)
+                                        .addGap(95, 95, 95))
+                                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                        .addComponent(raw_character_text)
+                                        .addGap(75, 75, 75)))
+                                .addGap(4, 4, 4)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(title)
+                                    .addComponent(imdb_rating))))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(txtConsulta, javax.swing.GroupLayout.PREFERRED_SIZE, 402, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(opcionesIndice, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(70, 70, 70)
-                        .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 467, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(187, Short.MAX_VALUE))
+                        .addComponent(original_air_date)
+                        .addGap(20, 20, 20)
+                        .addComponent(season)
+                        .addGap(554, 554, 554))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(16, 16, 16)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(txtConsulta, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(opcionesIndice, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(44, 44, 44)
-                                .addComponent(botonConsulta))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(18, 18, 18)
-                                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 195, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(64, 64, 64)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtConsulta, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(botonConsulta))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1)
+                    .addComponent(tipoConsulta, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2)
+                    .addComponent(tipoColeccion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(spoken_words)
+                    .addComponent(title))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(raw_character_text)
+                    .addComponent(imdb_rating))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(original_air_date)
+                    .addComponent(season))
+                .addContainerGap(325, Short.MAX_VALUE))
         );
 
         pack();
@@ -149,116 +263,87 @@ public class interfaz extends javax.swing.JFrame {
     }//GEN-LAST:event_txtConsultaActionPerformed
 
     private void botonConsultaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botonConsultaActionPerformed
-        String consulta= txtConsulta.getText();
-        String tipoIndice = (String) opcionesIndice.getSelectedItem();
-         Analyzer analyzer = new StandardAnalyzer();
-        
-        if(consulta.isEmpty()){
-            JOptionPane.showMessageDialog(this, "La consulta no puede estar vacía");
-            return;
+        if(txtConsulta.getText().isEmpty()){
+            JOptionPane.showMessageDialog(null, "Ingrese una consulta");
         }
-        
-        String resultados = "";
-       
-        String[] campos;
-        String campounico;
-        
-    switch (tipoIndice) {
-        case "Guiones":
+        else{
+            String q=txtConsulta.getText();
+            String tipo= tipoConsulta.getSelectedItem().toString();
             
-            campos = obtenerCamposGuiones();
-            if(campos.length>0){
-                busqueda.ConsultaMultiple(analyzer, campos);
-                resultados = obtenerResultado();
-            }else{
-                campounico=campos[0];
-                busqueda.ConsultaGenerica(campounico, analyzer);
+            campos=obtenerCamposCapitulos();
+            if(tipoColeccion.getSelectedItem().toString()=="Guiones"){
+                dir="src/indicecaps";
+                try {
+                    directorio = FSDirectory.open(Paths.get(dir));
+                } catch (IOException ex) {
+                    Logger.getLogger(interfaz.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
-                
-            
-            break;
-        case "Capítulos":
-            campos = obtenerCamposCapitulos();
-            if(campos.length>0){
-                busqueda.ConsultaMultiple(analyzer, campos);
-                resultados = obtenerResultado();
-            }else{
-                campounico=campos[0];
-                busqueda.ConsultaGenerica(campounico, analyzer);
+            if(tipoColeccion.getSelectedItem().toString()=="Capitulos"){
+                dir="src/indicecapunidos";
+                try {
+                    directorio = FSDirectory.open(Paths.get(dir));
+                } catch (IOException ex) {
+                    Logger.getLogger(interfaz.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
-                
             
-            break;
-        default:
-            campos = obtenerCamposOpcionesBusqueda();
-            resultados = obtenerResultadosOpcionesBusqueda();
-            break;
-    }
-    
-        
-        resultadoBusqueda.setText(resultados);
+            resultado_busqueda=busqueda.indexSearch(q, tipo, campos,directorio);
+        }
     }//GEN-LAST:event_botonConsultaActionPerformed
-private String[] obtenerCamposGuiones() {
-    List<String> camposSeleccionados = new ArrayList<>();
 
-    
-    int[] indicesSeleccionados = camposGuiones.getSelectedIndices();
-    for (int i : indicesSeleccionados) {
-        
-        String campo = ((DefaultListModel<String>) camposGuiones.getModel()).getElementAt(i);
-        camposSeleccionados.add(campo);
-    }
+    private void spoken_wordsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_spoken_wordsActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_spoken_wordsActionPerformed
 
-    
-    return camposSeleccionados.toArray(new String[0]);
-}
+    private void raw_character_textActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_raw_character_textActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_raw_character_textActionPerformed
+
+    private void imdb_ratingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_imdb_ratingActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_imdb_ratingActionPerformed
+
+    private void original_air_dateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_original_air_dateActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_original_air_dateActionPerformed
+
+    private void seasonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_seasonActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_seasonActionPerformed
+
+    private void titleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_titleActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_titleActionPerformed
+//private String[] obtenerCamposGuiones() {
+ 
+//}
 private String[] obtenerCamposCapitulos() {
-    List<String> camposSeleccionados = new ArrayList<>();
-
     
-    int[] indicesSeleccionados = camposCapitulos.getSelectedIndices();
-    for (int i : indicesSeleccionados) {
-        
-        String campo = ((DefaultListModel<String>) camposCapitulos.getModel()).getElementAt(i);
-        camposSeleccionados.add(campo);
+    if (spoken_words.isSelected()) {
+        campos[campos.length-1]=spoken_words.getName();
     }
-
+    if (raw_character_text.isSelected()) {
+        campos[campos.length-1]=raw_character_text.getName();
+    }
+    if (title.isSelected()) {
+        campos[campos.length-1]=title.getName();
+    }
+    if (imdb_rating.isSelected()) {
+        campos[campos.length-1]=imdb_rating.getName();
+    }
+    if (original_air_date.isSelected()) {
+       campos[campos.length-1]=original_air_date.getName();}
+    if (season.isSelected()) {
+        campos[campos.length-1]=season.getName();    }
     
-    return camposSeleccionados.toArray(new String[0]);
+    return campos;
 }
-private void opcionesIndiceActionPerformed(java.awt.event.ActionEvent evt){
-    String tipoIndice = (String) opcionesIndice.getSelectedItem();
-    switch(tipoIndice){
-            case "Guiones":
-                mostrarCamposGuiones();
-                break;
-            case "Capítulos":
-                mostrarCamposCapitulos();
-                break;
-            default:
-                mostrarOpcionesBusqueda();
-                break;
-        }
-}
-private void mostrarCamposGuiones(){
-    camposGuiones.setVisible(true);
-    camposCapitulos.setVisible(false);
-    opcionesBusqueda.setVisible(false);
-}
-private void mostrarCamposCapitulos(){
-    camposGuiones.setVisible(false);
-    camposCapitulos.setVisible(true);
-    opcionesBusqueda.setVisible(false);
-}
-private void mostrarOpcionesBusqueda(){
-    camposGuiones.setVisible(false);
-    camposCapitulos.setVisible(false);
-    opcionesBusqueda.setVisible(true);
-}
+
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
+public static void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -292,15 +377,16 @@ private void mostrarOpcionesBusqueda(){
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton botonConsulta;
-    private javax.swing.JList<String> camposCapitulos;
-    private javax.swing.JList<String> camposGuiones;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JScrollPane jScrollPane4;
-    private javax.swing.JList<String> opcionesBusqueda;
-    private javax.swing.JComboBox<String> opcionesIndice;
-    private javax.swing.JTextArea resultadoBusqueda;
+    private javax.swing.JCheckBox imdb_rating;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JCheckBox original_air_date;
+    private javax.swing.JCheckBox raw_character_text;
+    private javax.swing.JCheckBox season;
+    private javax.swing.JCheckBox spoken_words;
+    private javax.swing.JComboBox<String> tipoColeccion;
+    private javax.swing.JComboBox<String> tipoConsulta;
+    private javax.swing.JCheckBox title;
     private javax.swing.JTextField txtConsulta;
     // End of variables declaration//GEN-END:variables
 }
