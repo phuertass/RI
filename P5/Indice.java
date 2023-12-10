@@ -29,14 +29,13 @@ import java.util.Map;
 
 
 public class Indice {
-    private Analyzer analyzer;
-    private Similarity similarity;
-    private FSDirectory dir;
+    private final Analyzer analyzer;
+    private final Similarity similarity;
     private IndexWriter writer;
 
-    private String indexPath;
+    private final String indexPath;
+    private final String facetPath;
 
-    private String facetPath = "./facet";
     private FacetsConfig fconfig;
     private DirectoryTaxonomyWriter taxoWriter;
 
@@ -45,10 +44,11 @@ public class Indice {
     File[] csvCaps;
 
     //constructor de copia
-    Indice(Analyzer ana, Similarity simi, String indexP){
+    Indice(Analyzer ana, Similarity simi, String indexP, String faceP){
         analyzer=ana;
         similarity=simi;
         indexPath = indexP;
+        facetPath = faceP;
     }
 
     public void initialize(){
@@ -61,7 +61,7 @@ public class Indice {
         csvUnidos = carpetaCapitulosUnidos.listFiles((dir,nombre)->nombre.endsWith(".csv"));
         csvCaps = carpetaCapitulos.listFiles((dir,nombre)->nombre.endsWith(".csv"));
 
-        if(csvUnidos.length == 0 || csvCaps.length == 0){
+        if(csvUnidos.length == 0 || (csvCaps != null ? csvCaps.length : 0) == 0){
             System.out.println("No hay archivos csv en las carpetas");
             System.exit(0);
         }else{
@@ -77,6 +77,7 @@ public class Indice {
         //configurar el modo de apertura del indice
         config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
 
+        FSDirectory dir;
         try {
             dir = FSDirectory.open(Paths.get(indexPath));
         } catch (IOException e) {
@@ -105,7 +106,7 @@ public class Indice {
     public static long convertToLong(String cadena) {
 	    long valor;
 	    try {
-	        valor = Long.parseLong(cadena + "");
+	        valor = Long.parseLong(cadena);
 	    } catch (NumberFormatException | NullPointerException nfe) {
 	        return 0; //Valor default en caso de no poder convertir  a Long
 	    }
@@ -126,9 +127,7 @@ public class Indice {
         // Creamos un array de campos con la primera linea del csv
         String[] campos = new String [firstLine.length];
 
-        for(int i = 0; i < firstLine.length; i++) {
-            campos[i] = firstLine[i];
-        }
+        System.arraycopy(firstLine, 0, campos, 0, firstLine.length);
 
         System.out.println("\nCampos: ");
         System.out.println("Size: " + campos.length);
@@ -148,8 +147,8 @@ public class Indice {
 
             String[] nextRecord;
 
-            String todo = new String();
-			todo = todo.trim();
+            StringBuilder todo = new StringBuilder();
+			todo = new StringBuilder(todo.toString().trim());
 
             csvReader.readNext();
             while ((nextRecord = csvReader.readNext()) != null){
@@ -161,23 +160,23 @@ public class Indice {
 
                 if(!nextRecord[1].isEmpty()){
                     // episode_id INT
-                    todo += nextRecord[1].trim() + " ";
+                    todo.append(nextRecord[1].trim()).append(" ");
                     doc.add(new org.apache.lucene.document.StringField(campos[1], nextRecord[1].trim(), org.apache.lucene.document.Field.Store.YES));
                     doc.add(new org.apache.lucene.document.NumericDocValuesField(campos[1], Long.valueOf(nextRecord[1].trim())));
                 }
                 if(!nextRecord[2].isEmpty()){
                     // spoken words TEXT
-                    todo += nextRecord[2] + " ";
+                    todo.append(nextRecord[2]).append(" ");
                     doc.add(new org.apache.lucene.document.TextField(campos[2], nextRecord[2], org.apache.lucene.document.Field.Store.NO));
                 }
                 if(!nextRecord[3].isEmpty()){
                     // raw_text TEXT
-                    todo += nextRecord[3] + " ";
+                    todo.append(nextRecord[3]).append(" ");
                     doc.add(new org.apache.lucene.document.TextField(campos[3], nextRecord[3], org.apache.lucene.document.Field.Store.YES));
                 }
                 if(!nextRecord[4].isEmpty()){
                     // imdb rating DOUBLE
-                    todo += nextRecord[4].trim() + " ";
+                    todo.append(nextRecord[4].trim()).append(" ");
                     doc.add(new org.apache.lucene.document.StringField(campos[4], nextRecord[4].trim(), org.apache.lucene.document.Field.Store.YES));
                     doc.add(new org.apache.lucene.document.StoredField(campos[4], Double.parseDouble(nextRecord[4])));
                     doc.add(new org.apache.lucene.facet.FacetField(campos[4], nextRecord[4].trim()));
@@ -188,7 +187,7 @@ public class Indice {
                     // imdb votes INT
                     double imdbVotes = Double.parseDouble(nextRecord[5]);
                     int imdbVotesInt = (int) imdbVotes;
-                    todo += imdbVotesInt + " ";
+                    todo.append(imdbVotesInt).append(" ");
 
                     doc.add(new org.apache.lucene.document.StringField(campos[5], nextRecord[5].trim(), org.apache.lucene.document.Field.Store.YES));
                     doc.add(new org.apache.lucene.document.NumericDocValuesField(campos[5], imdbVotesInt));
@@ -197,18 +196,18 @@ public class Indice {
                 }
                 if(!nextRecord[6].isEmpty()){
                     // numer in season INT
-                    todo += nextRecord[6].trim() + " ";
+                    todo.append(nextRecord[6].trim()).append(" ");
                     doc.add(new org.apache.lucene.document.StringField(campos[6], nextRecord[6].trim(), org.apache.lucene.document.Field.Store.YES));
                     doc.add(new org.apache.lucene.document.NumericDocValuesField(campos[6], Long.valueOf(nextRecord[6].trim())));
                     doc.add(new org.apache.lucene.facet.FacetField(campos[6], nextRecord[6].trim()));
 
                 }
                 if(!nextRecord[7].isEmpty()){
-                    todo += nextRecord[7] + " ";
+                    todo.append(nextRecord[7]).append(" ");
                     // original air date
                     try {
                         Date date = new SimpleDateFormat("yyyy-MM-dd").parse(nextRecord[7]);
-                        todo += date.toString();
+                        todo.append(date.toString());
 
                         doc.add(new org.apache.lucene.document.LongPoint(campos[7], date.getTime()));
                         doc.add(new org.apache.lucene.document.StoredField(campos[7], date.getTime()));
@@ -219,27 +218,27 @@ public class Indice {
                 if(!nextRecord[8].isEmpty()){
                     // original air year INT
 
-                    todo += nextRecord[8].trim() + " ";
+                    todo.append(nextRecord[8].trim()).append(" ");
                     doc.add(new org.apache.lucene.document.StringField(campos[8], nextRecord[8].trim(), org.apache.lucene.document.Field.Store.YES));
                     doc.add(new org.apache.lucene.document.NumericDocValuesField(campos[8], Long.valueOf(nextRecord[8].trim())));
                 }
                 if(!nextRecord[9].isEmpty()){
                     // season INT
 
-                    todo += nextRecord[9].trim() + " ";
+                    todo.append(nextRecord[9].trim()).append(" ");
                     doc.add(new org.apache.lucene.document.StringField(campos[9], nextRecord[9].trim(), org.apache.lucene.document.Field.Store.YES));
                     doc.add(new org.apache.lucene.document.NumericDocValuesField(campos[9], Long.valueOf(nextRecord[9].trim())));
 
                 }
                 if(!nextRecord[10].isEmpty()){
-                    todo += nextRecord[10].trim() + " ";
+                    todo.append(nextRecord[10].trim()).append(" ");
                     // title TEXT
                     doc.add(new org.apache.lucene.document.TextField(campos[10], nextRecord[10], org.apache.lucene.document.Field.Store.YES));
                 }
                 if(!nextRecord[11].isEmpty()){
 
                     // us viewsers in millions DOUBLE
-                    todo += nextRecord[11].trim() + " ";
+                    todo.append(nextRecord[11].trim()).append(" ");
                     doc.add(new org.apache.lucene.document.StringField(campos[11], nextRecord[11].trim(), org.apache.lucene.document.Field.Store.YES));
                     doc.add(new org.apache.lucene.document.StoredField(campos[11], Double.parseDouble(nextRecord[11])));
                 }
@@ -248,15 +247,17 @@ public class Indice {
                     // views INT
                     double views = Double.parseDouble(nextRecord[12]);
                     int viewsInt= (int) views;
-                    todo += viewsInt + " ";
+                    todo.append(viewsInt).append(" ");
 
                     doc.add(new org.apache.lucene.document.StringField(campos[12], nextRecord[12].trim(), org.apache.lucene.document.Field.Store.YES));
                     doc.add(new org.apache.lucene.document.NumericDocValuesField(campos[12], viewsInt));
                 }
             }
 
-            doc.add(new org.apache.lucene.document.TextField("TODO", todo, org.apache.lucene.document.TextField.Store.YES));
-            writer.addDocument(doc);
+            doc.add(new org.apache.lucene.document.TextField("TODO", todo.toString(), org.apache.lucene.document.TextField.Store.YES));
+            //writer.addDocument(doc);
+            writer.addDocument(fconfig.build(taxoWriter, doc)); //incluimos las facetas en el doc
+
         }
     }
 
@@ -273,9 +274,7 @@ public class Indice {
         // Creamos un array de campos con la primera linea del csv
         String[] campos = new String[firstLine.length];
 
-        for (int i = 0; i < firstLine.length; i++) {
-            campos[i] = firstLine[i];
-        }
+        System.arraycopy(firstLine, 0, campos, 0, firstLine.length);
 
         System.out.println("\nCampos: ");
         System.out.println("Size: " + campos.length);
@@ -296,8 +295,8 @@ public class Indice {
             String[] nextRecord;
             csvReader.readNext();
 
-            String todo = new String();
-			todo = todo.trim();
+            StringBuilder todo = new StringBuilder();
+			todo = new StringBuilder(todo.toString().trim());
 
             while ((nextRecord = csvReader.readNext()) != null) {
 
@@ -307,78 +306,44 @@ public class Indice {
 
 
                 if (!nextRecord[1].isEmpty()) {
-                    todo += nextRecord[1];
+                    todo.append(nextRecord[1]);
                     // episode_id INT
                     doc.add(new org.apache.lucene.document.StringField(campos[1], nextRecord[1].trim(), org.apache.lucene.document.Field.Store.YES));
                 }
                 if (!nextRecord[2].isEmpty()) {
-                    todo += nextRecord[2];
+                    todo.append(nextRecord[2]);
                     // number INT
                     doc.add(new org.apache.lucene.document.StringField(campos[2], nextRecord[2].trim(), org.apache.lucene.document.Field.Store.YES));
                     doc.add(new org.apache.lucene.facet.FacetField(campos[2], nextRecord[2].trim()));
                 }
                 if (!nextRecord[3].isEmpty()) {
-                    todo += nextRecord[3];
+                    todo.append(nextRecord[3]);
                     // timestamp in ms LONG
                     doc.add(new org.apache.lucene.document.LongPoint(campos[3], Long.parseLong(nextRecord[3])));
                     doc.add(new org.apache.lucene.document.StoredField(campos[3], Long.parseLong(nextRecord[3])));
                     doc.add(new org.apache.lucene.facet.FacetField(campos[3], nextRecord[3].trim()));
                 }
                 if (!nextRecord[4].isEmpty()) {
-                    todo += nextRecord[4];
+                    todo.append(nextRecord[4]);
                     // raw_text TEXT
                     doc.add(new org.apache.lucene.document.TextField(campos[4], nextRecord[4], org.apache.lucene.document.Field.Store.YES));
                 }
                 if (!nextRecord[5].isEmpty()) {
-                    todo += nextRecord[5];
+                    todo.append(nextRecord[5]);
                     // raw location TEXT
                     doc.add(new org.apache.lucene.document.TextField(campos[5], nextRecord[5], org.apache.lucene.document.Field.Store.YES));
                 }
                 if (!nextRecord[6].isEmpty()) {
-                    todo += nextRecord[6];
+                    todo.append(nextRecord[6]);
                     // spoken words TEXT
                     doc.add(new org.apache.lucene.document.TextField(campos[6], nextRecord[6], org.apache.lucene.document.Field.Store.YES));
                 }
             }
-            /*while ((nextRecord = csvReader.readNext()) != null) {
-                if (!nextRecord[1].isEmpty()) {
-                    todo += nextRecord[1];
 
-                    // episode_id INT
-                    doc.add(new org.apache.lucene.document.IntPoint(campos[1], Integer.parseInt(nextRecord[1])));
-                    doc.add(new org.apache.lucene.document.StoredField(campos[1], Integer.parseInt(nextRecord[1])));
-                }
-                if (!nextRecord[2].isEmpty()) {
-                    todo += nextRecord[2];
-                    // number INT
-                    doc.add(new org.apache.lucene.document.IntPoint(campos[2], Integer.parseInt(nextRecord[2])));
-                    //doc.add(new org.apache.lucene.document.StoredField(campos[2], Integer.parseInt(nextRecord[2])));
-                }
-                if (!nextRecord[3].isEmpty()) {
-                    todo += nextRecord[3];
-                    // timestamp in ms LONG
-                    doc.add(new org.apache.lucene.document.LongPoint(campos[3], Long.parseLong(nextRecord[3])));
-                    //doc.add(new org.apache.lucene.document.StoredField(campos[3], Long.parseLong(nextRecord[3])));
-                }
-                if (!nextRecord[4].isEmpty()) {
-                    todo += nextRecord[4];
-                    // raw_text TEXT
-                    doc.add(new org.apache.lucene.document.TextField(campos[4], nextRecord[4], org.apache.lucene.document.Field.Store.YES));
-                }
-                if (!nextRecord[5].isEmpty()) {
-                    todo += nextRecord[5];
-                    // raw location TEXT
-                    doc.add(new org.apache.lucene.document.TextField(campos[5], nextRecord[5], org.apache.lucene.document.Field.Store.YES));
-                }
-                if (!nextRecord[6].isEmpty()) {
-                    todo += nextRecord[6];
-                    // spoken words TEXT
-                    doc.add(new org.apache.lucene.document.TextField(campos[6], nextRecord[6], org.apache.lucene.document.Field.Store.YES));
-                }
-            }*/
+            doc.add(new org.apache.lucene.document.TextField("TODO", todo.toString(), org.apache.lucene.document.TextField.Store.YES));
+//            writer.addDocument(doc);
+            writer.addDocument(fconfig.build(taxoWriter, doc)); //incluimos las facetas en el doc
 
-            doc.add(new org.apache.lucene.document.TextField("TODO", todo, org.apache.lucene.document.TextField.Store.YES));
-            writer.addDocument(doc);
         }
     }
 
@@ -386,6 +351,7 @@ public class Indice {
         try {
             writer.commit();
             writer.close();
+            taxoWriter.close();
             System.out.println("\nIndice close");
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -402,10 +368,7 @@ public class Indice {
 
         String indexPath = args[0];
         int opcion = Integer.parseInt(args[1]);
-
         System.out.println("Creando índice en: " + indexPath + "\n");
-
-        //Analyzer analyzer = new StandardAnalyzer();
 
         Analyzer defaultAnalyzer = new WhitespaceAnalyzer();
 
@@ -420,7 +383,7 @@ public class Indice {
 
         Similarity similarity = new ClassicSimilarity();
 
-        Indice mi_indice = new Indice(analyzer, similarity, indexPath);
+        Indice mi_indice = new Indice(analyzer, similarity, indexPath, "facets");
 
         System.out.println("Analizador: " + mi_indice.analyzer.getClass().getName());
         System.out.println("Modelo de recuperación: " + mi_indice.similarity.getClass().getName());

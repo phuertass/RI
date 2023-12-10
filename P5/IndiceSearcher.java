@@ -1,7 +1,11 @@
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer; 
 import org.apache.lucene.document.*;
-import org.apache.lucene.queryparser.classic.QueryParser; 
+import org.apache.lucene.facet.*;
+import org.apache.lucene.facet.taxonomy.FastTaxonomyFacetCounts;
+import org.apache.lucene.facet.taxonomy.TaxonomyReader;
+import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyReader;
+import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
@@ -44,23 +48,35 @@ import org.apache.lucene.search.PhraseQuery;
 
 public class IndiceSearcher {
 
-private  String indexPath; 				
+private final String indexPath;
 private  IndexSearcher searcher;         
 private  QueryParser parser;             
-private  IndexReader reader;             
+private  IndexReader reader;
+
+private TaxonomyReader taxoReader;
+private FacetsCollector fc;
+private FacetsConfig fconfig;
+private final String facetPath;
 
 
-IndiceSearcher(String indexP){
+IndiceSearcher(String indexP, String facetP){
 	indexPath = indexP;
+    facetPath = facetP;
 
 	try{
 		//Obtenemos directorios
         Directory dir = FSDirectory.open(Paths.get(indexPath));
+        Directory taxoDir = FSDirectory.open(Paths.get(facetPath));
         //Abrimos directorios
         reader = DirectoryReader.open(dir);
-        
+        taxoReader = new DirectoryTaxonomyReader(taxoDir);
         //buscadores
         searcher = new IndexSearcher(reader);
+        //facets
+        fconfig = new FacetsConfig();
+        // facets collector
+        fc = new FacetsCollector();
+
 	} catch (IOException e){
 		System.err.println("Error al obtener indice");
         System.exit(-1);
@@ -76,7 +92,7 @@ public static void main(String[] args) {
 
     String indexPath = args[0];
 
-    IndiceSearcher indice = new IndiceSearcher(indexPath);
+    IndiceSearcher indice = new IndiceSearcher(indexPath, "facets");
 
 
     Analyzer analyzer = new StandardAnalyzer();
@@ -93,13 +109,18 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
     try{
        //Directorio donde se encuentra el índice
         dir = FSDirectory.open(Paths.get(indexPath));
-         System.out.println(indexPath);
+        //Directorio donde estan las facetas
+        FSDirectory taxoDir = FSDirectory.open(Paths.get(facetPath));
+
+        System.out.println("Directorio del índice: " + indexPath);
+        System.out.println("Directorio de las facetas: " + facetPath);
+
         //Creamos el objeto IndexSearcher y abrimos para lectura
         reader = DirectoryReader.open(dir);
-
+        fconfig = new FacetsConfig();
         searcher = new IndexSearcher(reader);
-        //System.out.println("Número total de documentos en el índice: " + reader.numDocs());
         searcher.setSimilarity(similarity);
+        taxoReader = new DirectoryTaxonomyReader(taxoDir);
 
         //opciones
         String mostrar = new String("no");
@@ -260,6 +281,14 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
         System.out.println("Hay: " + totalHits + " documentos encontrados");
         System.out.println("***********************************************\n");
         System.out.println("\n\n");
+
+        //facetas
+        TopDocs ft  = FacetsCollector.search(searcher, bq, 10, fc);
+        System.out.print(" ¿Desea mostrar las facetas? si/no: ");
+        String res = in.readLine();
+        if(res.equals("si")){
+            MostrarFacetas(q1);
+        }
         
         return tdocs;
     }
@@ -280,27 +309,35 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
         line = line.trim();
 
         TopDocs docs = null; //este para mostrar los relevantes
-        Query query = null;
-       
-        //
-            try{
-               
-                    QueryParser parser = new QueryParser(campo, analyzer);
-                    query = parser.parse(line);
-                
-        
-                docs = searcher.search(query, 10);
+        TopDocs tf = null; //este para mostrar facetas
 
-            }catch (org.apache.lucene.queryparser.classic.ParseException e){
-                System.out.println("---Error en la consulta---");
-            }
-        //}
+        Query query = null;
+
+        try{
+            QueryParser parser = new QueryParser(campo, analyzer);
+            query = parser.parse(line);
+            docs = searcher.search(query, 10);
+            //para facetas
+            tf = FacetsCollector.search(searcher, query, 10, fc);
+
+        }catch (org.apache.lucene.queryparser.classic.ParseException e){
+            System.out.println("---Error en la consulta---");
+        }
+
         //mostramos documentos encontrados
         long totalHits = docs.totalHits.value;
         System.out.println("\n");
         System.out.println("Hay: " + totalHits + " documentos ");
         System.out.println("***********************************************\n");
         System.out.println("\n\n");
+
+        System.out.print("¿Desea mostrar las facetas? si/no: ");
+        String res = in.readLine();
+
+        if(res.equals("si")){
+            MostrarFacetas(query);
+        }
+
         return docs;
     }
 
@@ -310,7 +347,7 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
         System.out.println("Introduzca la frase que quiere buscar (se mostraran las peliculas/series que tengan la frase escrita en ese mismo orden): ");
         Scanner sc = new Scanner(System.in);
         String consulta = sc.nextLine();
-        //convertimos todo a minuscula
+        //convertimos a minuscula
         consulta=consulta.toLowerCase();
         //separamos
         String[] frase = consulta.split(" ");
@@ -331,6 +368,14 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
         System.out.println("***********************************************\n");
         System.out.println("\n\n");
 
+        //facetas
+        TopDocs ft = FacetsCollector.search(searcher, pq, 10, fc);
+        System.out.print(" ¿Desea mostrar las facetas? si/no: ");
+
+        String res = sc.nextLine();
+        if(res.equals("si")){
+            MostrarFacetas(pq);
+        }
         
 
         return tdocs;
@@ -374,6 +419,16 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
         System.out.println("***********************************************\n");
         System.out.println("\n\n");
 
+        //facetas
+        TopDocs ft = FacetsCollector.search(searcher, bq, 10, fc);
+        System.out.print(" ¿Desea mostrar las facetas? si/no: ");
+        Scanner sc = new Scanner(System.in);
+        String res = sc.nextLine();
+        if(res.equals("si")){
+            MostrarFacetas(bq);
+        }
+
+
         return tdocs;
 
     }
@@ -396,5 +451,104 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
         }
 
     }
+
+
+    public void MostrarFacetas(Query query){
+        BufferedReader in = new BufferedReader(new InputStreamReader(System.in , StandardCharsets.UTF_8));
+        String [] vector_facetas =  new String[4*5];
+        DrillDownQuery ddq = new DrillDownQuery(fconfig, query); //
+        //contador
+        int i=0;
+
+        try{
+
+            FacetsCollector fc1 = new FacetsCollector();
+            TopDocs tdc = FacetsCollector.search(searcher, query, 10, fc1);
+            System.out.println("\n\nFiltramos query( " + ddq.toString()+ " )"); //
+            Facets fcCount2 = new FastTaxonomyFacetCounts(taxoReader, fconfig, fc1); //num ocurrencias de cada una
+            List<FacetResult> todasDims = fcCount2.getAllDims(100);
+
+            System.out.println("\nCategorias totales " + todasDims.size()+ " \n");
+
+            //Para cada categoria mostramos el valor de la etiqueta y num ocurrencias
+            for( FacetResult fr : todasDims ){
+                System.out.println("\nCategoria: " + fr.dim);
+                int cont=0;
+                //Almacenamos cada etiqueta en un vector
+                for(LabelAndValue lv : fr.labelValues){
+                    if(cont < 5){
+                        vector_facetas[i]=new String(fr.dim+ ", (#n)-> "+ lv.label + "");
+                        System.out.println(lv.label + ", (#n)-> "+ lv.value);
+                    }else
+                        break;
+                    cont++;
+                    i++;
+                }
+            }
+
+            System.out.print("\n¿Quieres filtrar por facetas? si/no: ");
+            String res =  in.readLine();
+            if(res.equals("si")){
+                tdc = FiltrarPorFacetas(query, tdc, vector_facetas);
+                mostrarDocumentos(tdc);
+            }
+
+        }catch(IOException e){
+            System.out.println("Error al mostrar facetas. ");
+        }
+
+
+    }
+
+    public TopDocs FiltrarPorFacetas(Query query, TopDocs td2, String [] vector_facetas){
+        //inicializamos el DrillDownQuery con la consulta realizada
+        DrillDownQuery ddq = new DrillDownQuery(fconfig, query);
+        BufferedReader in = new BufferedReader(new InputStreamReader(System.in , StandardCharsets.UTF_8));
+
+
+        try{
+
+            System.out.println("\n\nFiltramos query( " + ddq.toString()+ " )");
+            FacetsCollector fc1 = new FacetsCollector();
+            System.out.println("Total hits = "+ td2.totalHits);
+
+            for(int i=0 ; i < 5*4; i++){
+                if(vector_facetas[i]!= null)
+                    System.out.println("\n(" + i +")" + " " + vector_facetas[i]);
+            }
+
+            System.out.print("\nIntroduzca los filtros: ");
+            String entrada_teclado =  in.readLine();
+            String[] filtros = entrada_teclado.split(" ");
+            int[] faceta_n = new int[filtros.length];
+
+            for(int i=0; i < faceta_n.length; i++){
+                faceta_n[i]= Integer.parseInt(filtros[i]);
+                //Busca la primera ocurrencia de ">"
+                int ultpos = vector_facetas[faceta_n[i]].indexOf(">");
+                //busco la primera de ,
+                int istart = vector_facetas[faceta_n[i]].indexOf(",");
+                String faceta = vector_facetas[faceta_n[i]].substring(ultpos+1, vector_facetas[faceta_n[i]].length());
+                faceta = faceta.trim();
+                String categoria = vector_facetas[faceta_n[i]].substring(0,istart);
+                categoria = categoria.trim();
+                //Realizamos operación AND entre cada dimensión
+                ddq.add(categoria, faceta);
+            }
+
+            //volvemos a hacer el search con el nuevo ddq que contiene las facetas.
+            td2 = FacetsCollector.search(searcher, ddq, 10, fc1);
+            Facets fcCount2 = new FastTaxonomyFacetCounts(taxoReader,fconfig,fc1);
+            List<FacetResult> allDims = fcCount2.getAllDims(100);
+
+            System.out.println("\nCoincidencias totales = " + td2.totalHits);
+
+        }catch(IOException e){
+            System.out.println("Error al filtrar facetas. ");
+        }
+
+        return td2;
+    }
+
 
 }
