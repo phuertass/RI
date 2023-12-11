@@ -104,6 +104,8 @@ public class interfaz extends javax.swing.JFrame {
         imdb_rating.setVisible(false);
         original_air_date.setVisible(false);
         season.setVisible(false);
+        todos.setVisible(false);
+        todosg.setVisible(false);
 
         dir=obtenerRutaIndice();
         fdir=obtenerRutaFaceta();
@@ -141,6 +143,8 @@ public class interfaz extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         todotexto = new javax.swing.JTextArea();
         jLabel3 = new javax.swing.JLabel();
+        todos = new javax.swing.JCheckBox();
+        todosg = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -259,6 +263,20 @@ public class interfaz extends javax.swing.JFrame {
 
         jLabel3.setText("RESULTADOS");
 
+        todos.setText("Todos");
+        todos.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                todosActionPerformed(evt);
+            }
+        });
+
+        todosg.setText("Todos");
+        todosg.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                todosgActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -285,7 +303,6 @@ public class interfaz extends javax.swing.JFrame {
                                     .addComponent(timestamp_in_ms)
                                     .addComponent(raw_character_textg)
                                     .addComponent(raw_location_text)
-                                    .addComponent(spoken_wordsg)
                                     .addGroup(layout.createSequentialGroup()
                                         .addGap(19, 19, 19)
                                         .addComponent(jLabel3)))
@@ -302,8 +319,13 @@ public class interfaz extends javax.swing.JFrame {
                                     .addGroup(layout.createSequentialGroup()
                                         .addComponent(original_air_date)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                        .addComponent(season))))
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 699, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                                        .addComponent(season))
+                                    .addComponent(todos)))
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 699, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(spoken_wordsg)
+                                .addGap(18, 18, 18)
+                                .addComponent(todosg)))))
                 .addContainerGap(70, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -325,6 +347,22 @@ public class interfaz extends javax.swing.JFrame {
                     .addComponent(title))
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
+                        .addGap(23, 23, 23)
+                        .addComponent(episode_id)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(timestamp_in_ms)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(raw_character_textg)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(raw_location_text)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(spoken_wordsg)
+                            .addComponent(todosg))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 34, Short.MAX_VALUE)
+                        .addComponent(jLabel3)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED))
+                    .addGroup(layout.createSequentialGroup()
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(raw_character_text)
@@ -332,21 +370,10 @@ public class interfaz extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(original_air_date)
-                            .addComponent(season)))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(23, 23, 23)
-                        .addComponent(episode_id)
+                            .addComponent(season))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(timestamp_in_ms)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(raw_character_textg)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(raw_location_text)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(spoken_wordsg)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 34, Short.MAX_VALUE)
-                .addComponent(jLabel3)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(todos)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 227, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -450,6 +477,14 @@ public class interfaz extends javax.swing.JFrame {
     private void spoken_wordsgActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_spoken_wordsgActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_spoken_wordsgActionPerformed
+
+    private void todosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_todosActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_todosActionPerformed
+
+    private void todosgActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_todosgActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_todosgActionPerformed
 private void ocultarCamposCapitulos() {
     spoken_words.setVisible(false);
     raw_character_text.setVisible(false);
@@ -457,6 +492,7 @@ private void ocultarCamposCapitulos() {
     imdb_rating.setVisible(false);
     original_air_date.setVisible(false);
     season.setVisible(false);
+    todos.setVisible(false);
 }
 private void ocultarCamposGuiones() {
     spoken_wordsg.setVisible(false);
@@ -464,6 +500,7 @@ private void ocultarCamposGuiones() {
     episode_id.setVisible(false);
     timestamp_in_ms.setVisible(false);
     raw_location_text.setVisible(false);
+     todosg.setVisible(false);
 }
 private void mostrarCamposCapitulos() {
     spoken_words.setVisible(true);
@@ -472,6 +509,7 @@ private void mostrarCamposCapitulos() {
     imdb_rating.setVisible(true);
     original_air_date.setVisible(true);
     season.setVisible(true);
+     todos.setVisible(true);
 }
 private void mostrarCamposGuiones() {
     spoken_wordsg.setVisible(true);
@@ -479,6 +517,7 @@ private void mostrarCamposGuiones() {
     episode_id.setVisible(true);
     timestamp_in_ms.setVisible(true);
     raw_location_text.setVisible(true);
+     todosg.setVisible(true);
 }
  
     public String obtenerRutaIndice(){
@@ -548,6 +587,10 @@ private ArrayList<String> obtenerCamposCapitulos() {
         campos.add("timestamp_in_ms");    }
     if (episode_id.isSelected()) {
         campos.add("episode_id");    }
+    if (todos.isSelected()) {
+        campos.add("TODO");    }
+    if (todosg.isSelected()) {
+        campos.add("TODO");    }
     
     return campos;
 }
@@ -625,6 +668,8 @@ public static void main(String args[]) {
     private javax.swing.JComboBox<String> tipoColeccion;
     private javax.swing.JComboBox<String> tipoConsulta;
     private javax.swing.JCheckBox title;
+    private javax.swing.JCheckBox todos;
+    private javax.swing.JCheckBox todosg;
     private javax.swing.JTextArea todotexto;
     private javax.swing.JTextField txtConsulta;
     // End of variables declaration//GEN-END:variables

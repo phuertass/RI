@@ -243,7 +243,7 @@ public  TopDocs ConsultaGenerica(String campo, Analyzer analyzer, String consult
         consulta=consulta.toLowerCase();
        
         String[] frase = consulta.split(" ");
-
+        System.out.println(frase);
        
         for(int i=0; i<frase.length; i++){ 
             pqbuilder.add(new Term(campo, frase[i]), i); 
@@ -320,6 +320,7 @@ public  TopDocs ConsultaGenerica(String campo, Analyzer analyzer, String consult
         try{
             for(int i=0; i<total; i++){
                 q[i]=parser[i].parse(values[i]);
+                System.out.println(q[i]);
             }
 
         }catch (org.apache.lucene.queryparser.classic.ParseException e){
