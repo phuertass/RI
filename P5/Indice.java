@@ -319,18 +319,17 @@ public class Indice {
                 if (!nextRecord[3].isEmpty()) {
                     todo.append(nextRecord[3]);
                     // timestamp in ms LONG
-                    doc.add(new org.apache.lucene.document.LongPoint(campos[3], Long.parseLong(nextRecord[3])));
-                    doc.add(new org.apache.lucene.document.StoredField(campos[3], Long.parseLong(nextRecord[3])));
+                    doc.add(new org.apache.lucene.document.StringField(campos[3], nextRecord[3].trim(), org.apache.lucene.document.Field.Store.YES));
                     doc.add(new org.apache.lucene.facet.FacetField(campos[3], nextRecord[3].trim()));
                 }
                 if (!nextRecord[4].isEmpty()) {
                     todo.append(nextRecord[4]);
-                    // raw_text TEXT
+                    // raw_character_text TEXT
                     doc.add(new org.apache.lucene.document.TextField(campos[4], nextRecord[4], org.apache.lucene.document.Field.Store.YES));
                 }
                 if (!nextRecord[5].isEmpty()) {
                     todo.append(nextRecord[5]);
-                    // raw location TEXT
+                    // raw_location_text TEXT
                     doc.add(new org.apache.lucene.document.TextField(campos[5], nextRecord[5], org.apache.lucene.document.Field.Store.YES));
                 }
                 if (!nextRecord[6].isEmpty()) {
@@ -383,7 +382,9 @@ public class Indice {
 
         Similarity similarity = new ClassicSimilarity();
 
-        Indice mi_indice = new Indice(analyzer, similarity, indexPath, "facets");
+        String facetPath = args[2];
+
+        Indice mi_indice = new Indice(analyzer, similarity, indexPath, facetPath);
 
         System.out.println("Analizador: " + mi_indice.analyzer.getClass().getName());
         System.out.println("Modelo de recuperación: " + mi_indice.similarity.getClass().getName());

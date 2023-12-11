@@ -52,7 +52,7 @@ import org.apache.lucene.facet.taxonomy.IntTaxonomyFacets;
 
 
 
-public class IndiceSearcher {
+public class IndiceSearcherP {
 
 private String indexPath; 				//ubicacion del indice
 private  String facetPath; 				//ubicacion de las facetas

@@ -1,5 +1,8 @@
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.standard.StandardAnalyzer; 
+import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
+import org.apache.lucene.analysis.en.EnglishAnalyzer;
+import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.*;
 import org.apache.lucene.facet.*;
 import org.apache.lucene.facet.taxonomy.FastTaxonomyFacetCounts;
@@ -91,11 +94,29 @@ public static void main(String[] args) {
     }
 
     String indexPath = args[0];
+    String facetPath = "indexCS";
 
-    IndiceSearcher indice = new IndiceSearcher(indexPath, "facets");
 
+    if(indexPath == "indexCU"){
+        facetPath = "indexCS";
+    }
 
-    Analyzer analyzer = new StandardAnalyzer();
+    IndiceSearcher indice = new IndiceSearcher(indexPath, facetPath);
+
+//    Analyzer analyzer = new StandardAnalyzer();
+//    Similarity similarity = new ClassicSimilarity();
+
+    Analyzer defaultAnalyzer = new WhitespaceAnalyzer();
+
+    Map<String, Analyzer> analyzerPerField = new HashMap<>();
+    analyzerPerField.put("spoken_words", new EnglishAnalyzer());
+    analyzerPerField.put("title", new EnglishAnalyzer());
+    analyzerPerField.put("raw_character_text", new EnglishAnalyzer());
+    analyzerPerField.put("raw_location_text", new EnglishAnalyzer());
+    analyzerPerField.put("raw_text", new EnglishAnalyzer());
+
+    PerFieldAnalyzerWrapper analyzer = new PerFieldAnalyzerWrapper(defaultAnalyzer, analyzerPerField);
+
     Similarity similarity = new ClassicSimilarity();
 
     
@@ -131,7 +152,7 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
         	System.out.println("\n");
             System.out.println("**********************************************************\n");
             System.out.println("Introduzca el campo sobre el que realizar la busqueda:\n");
-            System.out.println("(0) Sobre todos los campos\n(1) Busqueda por un solo campo\n(2) Busqueda por varios campos\n(3) Salir\n");
+            System.out.println("(0) Sobre todos los campos\n(1) Busqueda por un solo campo\n(2) Busqueda por varios campos\n(3) Consulta doble(para interfaz)\n");
             Scanner sc = new Scanner(System.in);
             int valor = sc.nextInt();
 
@@ -195,7 +216,25 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
                 //--------------------------------------------------------------------------------------------------    
                 //SALIR
                 case 3:
-                    
+                    in = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
+
+                    String campoConsulta1, valorConsulta1, campoConsulta2, valorConsulta2;
+
+                    System.out.print("Ingrese el campo para la primera consulta: (CAPITULOS UNIDOS) ");
+                    campoConsulta1 = in.readLine();
+
+                    System.out.print("Ingrese el valor para la primera consulta: ");
+                    valorConsulta1 = in.readLine();
+
+                    System.out.print("Ingrese el campo para la segunda consulta: (CAPITULOS SIMPLES)");
+                    campoConsulta2 = in.readLine();
+
+                    System.out.print("Ingrese el valor para la segunda consulta: ");
+                    valorConsulta2 = in.readLine();
+
+                    // Realizar las consultas
+                    consultarIndice("indexCU", "facetsCU", campoConsulta1, valorConsulta1, analyzer, similarity);
+                    consultarIndice("indexCS", "facetsCS", campoConsulta2, valorConsulta2, analyzer, similarity);
                     return;
 
 				//--------------------------------------------------------------------------------------------------	
@@ -550,5 +589,79 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
         return td2;
     }
 
+
+
+    public TopDocs consultarIndice(String indexPath, String facetPath, String campo, String valor, Analyzer analyzer, Similarity similarity) throws IOException {
+        Directory dir = null;
+        DirectoryTaxonomyReader taxoReader = null;
+        DirectoryReader reader = null;
+        IndexSearcher searcher = null;
+        FacetsConfig fconfig = null;
+
+        try {
+            // Directorio donde se encuentra el índice
+            dir = FSDirectory.open(Paths.get(indexPath));
+            // Directorio donde están las facetas
+            FSDirectory taxoDir = FSDirectory.open(Paths.get(facetPath));
+
+            System.out.println("Directorio del índice: " + indexPath);
+            System.out.println("Directorio de las facetas: " + facetPath);
+
+            // Creamos el objeto IndexSearcher y abrimos para lectura
+            reader = DirectoryReader.open(dir);
+            fconfig = new FacetsConfig();
+            searcher = new IndexSearcher(reader);
+            searcher.setSimilarity(similarity);
+            taxoReader = new DirectoryTaxonomyReader(taxoDir);
+
+            // Realizar la consulta
+            return ConsultaGenericaValor(campo, valor, analyzer, searcher, fconfig);
+        } finally {
+            // Cerrar los recursos abiertos
+            if (reader != null) {
+                reader.close();
+            }
+            if (dir != null) {
+                dir.close();
+            }
+            if (taxoReader != null) {
+                taxoReader.close();
+            }
+        }
+    }
+    public TopDocs ConsultaGenericaValor(String campo, String valor, Analyzer analyzer, IndexSearcher searcher, FacetsConfig fconfig) throws IOException {
+        String line = valor.trim(); // Usamos el valor directamente
+
+        TopDocs docs = null; // Para mostrar los relevantes
+
+        Query query = null;
+
+        try {
+            QueryParser parser = new QueryParser(campo, analyzer);
+            query = parser.parse(line);
+            docs = searcher.search(query, 10);
+            // No se hace la búsqueda de facetas aquí según la lógica proporcionada en el código original
+        } catch (org.apache.lucene.queryparser.classic.ParseException e) {
+            System.out.println("---Error en la consulta---");
+        }
+
+        // Mostrar documentos encontrados
+        long totalHits = docs.totalHits.value;
+        System.out.println("\n");
+        System.out.println("Hay: " + totalHits + " documentos ");
+        System.out.println("***********************************************\n");
+        System.out.println("\n\n");
+        return docs;
+    }
+
+    public void mostrarResultados(TopDocs resultados) {
+        // ... (tu lógica para mostrar los resultados aquí)
+        // Por ejemplo:
+        long totalHits = resultados.totalHits.value;
+        System.out.println("\n");
+        System.out.println("Hay: " + totalHits + " documentos ");
+        System.out.println("***********************************************\n");
+        System.out.println("\n\n");
+    }
 
 }
