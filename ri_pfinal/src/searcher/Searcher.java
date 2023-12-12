@@ -188,9 +188,11 @@ public  TopDocs ConsultaGenerica(String campo, Analyzer analyzer, String consult
     TopDocs docs = null; 
     TopDocs tfacet = null; 
     Query query = null;
+    System.out.println(consulta);
 
     try{
         query = parser.parse(consulta);
+       System.out.println(query);
         docs = searcher.search(query, 10);
            
             tfacet = FacetsCollector.search(searcher, query, 10, colectorFacetas);
