@@ -156,6 +156,7 @@ public class Indice {
                 //CONFIGURAMOS FACETAS
                 fconfig.setMultiValued("imdb_rating", true);
                 fconfig.setMultiValued("numer_in_season", true);
+                fconfig.setMultiValued("title", true);
 
 
                 if(!nextRecord[1].isEmpty()){
@@ -234,6 +235,7 @@ public class Indice {
                     todo.append(nextRecord[10].trim()).append(" ");
                     // title TEXT
                     doc.add(new org.apache.lucene.document.TextField(campos[10], nextRecord[10], org.apache.lucene.document.Field.Store.YES));
+                    doc.add(new org.apache.lucene.facet.FacetField(campos[10], nextRecord[10].trim()));
                 }
                 if(!nextRecord[11].isEmpty()){
 

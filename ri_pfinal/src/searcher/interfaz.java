@@ -15,7 +15,6 @@ import java.io.*;
 import java.util.*;
 import java.nio.file.Paths;
 
-
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -31,7 +30,6 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
 import org.apache.lucene.search.similarities.ClassicSimilarity;
 import org.apache.lucene.analysis.CharArraySet;
-
 
 import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyWriter;
 import org.apache.lucene.facet.taxonomy.TaxonomyReader;
@@ -71,29 +69,30 @@ import org.apache.lucene.facet.DrillSideways;
 import org.apache.lucene.queryparser.classic.ParseException;
 import java.awt.Color;
 import org.apache.lucene.store.Directory;
+
 /**
  *
  * @author anne
  */
 public class interfaz extends javax.swing.JFrame {
+
     private Searcher busqueda;
     String resultado_busqueda;
     String[] matriz;
-    ArrayList<String> campos=new ArrayList<String>();
+    ArrayList<String> campos = new ArrayList<String>();
     String coleccion;
-    String dir,fdir;
+    String dir, fdir;
     Directory directorio;
-    FSDirectory  fdirectorio;
-    
-    
-    private Boolean[][] filtros=new Boolean[][]{{false, false, false},{false,false,false},{false,false,false},{false,false,false}};
-   
+    FSDirectory fdirectorio;
+
+    private Boolean[][] filtros = new Boolean[][]{{false, false, false}, {false, false, false}, {false, false, false}, {false, false, false}};
+
     /**
      * Creates new form interfaz
      */
     public interfaz() {
         initComponents();
-         spoken_wordsg.setVisible(false);
+        spoken_wordsg.setVisible(false);
         raw_character_textg.setVisible(false);
         episode_id.setVisible(false);
         timestamp_in_ms.setVisible(false);
@@ -107,11 +106,11 @@ public class interfaz extends javax.swing.JFrame {
         todos.setVisible(false);
         todosg.setVisible(false);
 
-        dir=obtenerRutaIndice();
-        fdir=obtenerRutaFaceta();
-        
-        busqueda = new Searcher(dir,fdir);
-        resultado_busqueda=new String();
+        dir = obtenerRutaIndice();
+        fdir = obtenerRutaFaceta();
+
+        busqueda = new Searcher(dir, fdir);
+        resultado_busqueda = new String();
     }
 
     /**
@@ -386,18 +385,16 @@ public class interfaz extends javax.swing.JFrame {
     }//GEN-LAST:event_txtConsultaActionPerformed
 
     private void botonConsultaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botonConsultaActionPerformed
-        if(txtConsulta.getText().isEmpty()){
+        if (txtConsulta.getText().isEmpty()) {
             JOptionPane.showMessageDialog(null, "Ingrese una consulta");
-        }
-        else{
-            String q=txtConsulta.getText();
-            String tipo= tipoConsulta.getSelectedItem().toString();
-            
-            
-            campos=obtenerCamposCapitulos();
-            if(tipoColeccion.getSelectedItem().toString()=="Guiones"){
-                dir="src/searcher/indicecaps";
-                fdir="src/searcher/facetascaps";
+        } else {
+            String q = txtConsulta.getText();
+            String tipo = tipoConsulta.getSelectedItem().toString();
+
+            campos = obtenerCamposCapitulos();
+            if (tipoColeccion.getSelectedItem().toString() == "Guiones") {
+                dir = "src/searcher/indicecaps";
+                fdir = "src/searcher/facetascaps";
                 try {
                     directorio = FSDirectory.open(Paths.get(dir));
                     fdirectorio = FSDirectory.open(Paths.get(fdir));
@@ -405,9 +402,9 @@ public class interfaz extends javax.swing.JFrame {
                     Logger.getLogger(interfaz.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-            if(tipoColeccion.getSelectedItem().toString()=="Capitulos"){
-                dir="src/searcher/indicecapunidos";
-                fdir="src/searcher/facetasunidos";
+            if (tipoColeccion.getSelectedItem().toString() == "Capitulos") {
+                dir = "src/searcher/indicecapunidos";
+                fdir = "src/searcher/facetasunidos";
                 try {
                     directorio = FSDirectory.open(Paths.get(dir));
                     fdirectorio = FSDirectory.open(Paths.get(fdir));
@@ -416,7 +413,7 @@ public class interfaz extends javax.swing.JFrame {
                 }
             }
             System.out.println(campos);
-            resultado_busqueda=busqueda.indexSearch(q, tipo, campos,directorio,fdirectorio);
+            resultado_busqueda = busqueda.indexSearch(q, tipo, campos, directorio, fdirectorio);
             todotexto.setText(resultado_busqueda);
         }
     }//GEN-LAST:event_botonConsultaActionPerformed
@@ -446,15 +443,15 @@ public class interfaz extends javax.swing.JFrame {
     }//GEN-LAST:event_titleActionPerformed
 
     private void tipoColeccionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tipoColeccionActionPerformed
-        String seleccion=tipoColeccion.getSelectedItem().toString();
-        
+        String seleccion = tipoColeccion.getSelectedItem().toString();
+
         if ("Guiones".equals(seleccion)) {
             ocultarCamposCapitulos();
             mostrarCamposGuiones();
         } else if ("Capitulos".equals(seleccion)) {
             ocultarCamposGuiones();
             mostrarCamposCapitulos();
-        
+
         }
     }//GEN-LAST:event_tipoColeccionActionPerformed
 
@@ -485,120 +482,133 @@ public class interfaz extends javax.swing.JFrame {
     private void todosgActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_todosgActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_todosgActionPerformed
-private void ocultarCamposCapitulos() {
-    spoken_words.setVisible(false);
-    raw_character_text.setVisible(false);
-    title.setVisible(false);
-    imdb_rating.setVisible(false);
-    original_air_date.setVisible(false);
-    season.setVisible(false);
-    todos.setVisible(false);
-}
-private void ocultarCamposGuiones() {
-    spoken_wordsg.setVisible(false);
-    raw_character_textg.setVisible(false);
-    episode_id.setVisible(false);
-    timestamp_in_ms.setVisible(false);
-    raw_location_text.setVisible(false);
-     todosg.setVisible(false);
-}
-private void mostrarCamposCapitulos() {
-    spoken_words.setVisible(true);
-    raw_character_text.setVisible(true);
-    title.setVisible(true);
-    imdb_rating.setVisible(true);
-    original_air_date.setVisible(true);
-    season.setVisible(true);
-     todos.setVisible(true);
-}
-private void mostrarCamposGuiones() {
-    spoken_wordsg.setVisible(true);
-    raw_character_textg.setVisible(true);
-    episode_id.setVisible(true);
-    timestamp_in_ms.setVisible(true);
-    raw_location_text.setVisible(true);
-     todosg.setVisible(true);
-}
- 
-    public String obtenerRutaIndice(){
-     if(tipoColeccion.getSelectedItem().toString()=="Guiones"){
-                dir="./src/searcher/indicecaps";
-                fdir="./src/searcher/facetascaps";
-                try {
-                    directorio = FSDirectory.open(Paths.get(dir));
-                    fdirectorio = FSDirectory.open(Paths.get(fdir));
-                } catch (IOException ex) {
-                    Logger.getLogger(interfaz.class.getName()).log(Level.SEVERE, null, ex);
-                }
+    private void ocultarCamposCapitulos() {
+        spoken_words.setVisible(false);
+        raw_character_text.setVisible(false);
+        title.setVisible(false);
+        imdb_rating.setVisible(false);
+        original_air_date.setVisible(false);
+        season.setVisible(false);
+        todos.setVisible(false);
+    }
+
+    private void ocultarCamposGuiones() {
+        spoken_wordsg.setVisible(false);
+        raw_character_textg.setVisible(false);
+        episode_id.setVisible(false);
+        timestamp_in_ms.setVisible(false);
+        raw_location_text.setVisible(false);
+        todosg.setVisible(false);
+    }
+
+    private void mostrarCamposCapitulos() {
+        spoken_words.setVisible(true);
+        raw_character_text.setVisible(true);
+        title.setVisible(true);
+        imdb_rating.setVisible(true);
+        original_air_date.setVisible(true);
+        season.setVisible(true);
+        todos.setVisible(true);
+    }
+
+    private void mostrarCamposGuiones() {
+        spoken_wordsg.setVisible(true);
+        raw_character_textg.setVisible(true);
+        episode_id.setVisible(true);
+        timestamp_in_ms.setVisible(true);
+        raw_location_text.setVisible(true);
+        todosg.setVisible(true);
+    }
+
+    public String obtenerRutaIndice() {
+        if (tipoColeccion.getSelectedItem().toString() == "Guiones") {
+            dir = "./src/searcher/indicecaps";
+            fdir = "./src/searcher/facetascaps";
+            try {
+                directorio = FSDirectory.open(Paths.get(dir));
+                fdirectorio = FSDirectory.open(Paths.get(fdir));
+            } catch (IOException ex) {
+                Logger.getLogger(interfaz.class.getName()).log(Level.SEVERE, null, ex);
             }
-            if(tipoColeccion.getSelectedItem().toString()=="Capitulos"){
-                dir="./src/searcher/indicecapunidos";
-                fdir="./src/searcher/facetasunidos";
-                try {
-                    directorio = FSDirectory.open(Paths.get(dir));
-                    fdirectorio = FSDirectory.open(Paths.get(fdir));
-                } catch (IOException ex) {
-                    Logger.getLogger(interfaz.class.getName()).log(Level.SEVERE, null, ex);
-                }
+        }
+        if (tipoColeccion.getSelectedItem().toString() == "Capitulos") {
+            dir = "./src/searcher/indicecapunidos";
+            fdir = "./src/searcher/facetasunidos";
+            try {
+                directorio = FSDirectory.open(Paths.get(dir));
+                fdirectorio = FSDirectory.open(Paths.get(fdir));
+            } catch (IOException ex) {
+                Logger.getLogger(interfaz.class.getName()).log(Level.SEVERE, null, ex);
             }
-            return dir;
- }
- String obtenerRutaFaceta(){
-     if(tipoColeccion.getSelectedItem().toString()=="Guiones"){
-                dir="./src/searcher/indicecaps";
-                fdir="./src/searcher/facetascaps";
-                
-            }
-            if(tipoColeccion.getSelectedItem().toString()=="Capitulos"){
-                dir="./src/searcher/indicecapunidos";
-                fdir="./src/searcher/facetasunidos";
-                
-            }
-            return fdir;
- }
+        }
+        return dir;
+    }
+
+    String obtenerRutaFaceta() {
+        if (tipoColeccion.getSelectedItem().toString() == "Guiones") {
+            dir = "./src/searcher/indicecaps";
+            fdir = "./src/searcher/facetascaps";
+
+        }
+        if (tipoColeccion.getSelectedItem().toString() == "Capitulos") {
+            dir = "./src/searcher/indicecapunidos";
+            fdir = "./src/searcher/facetasunidos";
+
+        }
+        return fdir;
+    }
 //}
-private ArrayList<String> obtenerCamposCapitulos() {
-    
-    if (spoken_words.isSelected()) {
-        campos.add("spoken_words");
+
+    private ArrayList<String> obtenerCamposCapitulos() {
+
+        if (spoken_words.isSelected()) {
+            campos.add("spoken_words");
+        }
+        if (raw_character_text.isSelected()) {
+            campos.add("raw_character_text");
+        }
+        if (title.isSelected()) {
+            campos.add("title");
+        }
+        if (imdb_rating.isSelected()) {
+            campos.add("imdb_rating");
+        }
+        if (original_air_date.isSelected()) {
+            campos.add("original_air_date");
+        }
+        if (season.isSelected()) {
+            campos.add("season");
+        }
+
+        if (spoken_wordsg.isSelected()) {
+            campos.add("spoken_words");
+        }
+        if (raw_location_text.isSelected()) {
+            campos.add("raw_location_text");
+        }
+        if (raw_character_textg.isSelected()) {
+            campos.add("raw_character_text");
+        }
+        if (timestamp_in_ms.isSelected()) {
+            campos.add("timestamp_in_ms");
+        }
+        if (episode_id.isSelected()) {
+            campos.add("episode_id");
+        }
+        if (todos.isSelected()) {
+            campos.add("TODO");
+        }
+        if (todosg.isSelected()) {
+            campos.add("TODO");
+        }
+
+        return campos;
     }
-    if (raw_character_text.isSelected()) {
-        campos.add("raw_character_text");
-    }
-    if (title.isSelected()) {
-       campos.add("title");
-    }
-    if (imdb_rating.isSelected()) {
-        campos.add("imdb_rating");
-    }
-    if (original_air_date.isSelected()) {
-        campos.add("original_air_date");
-    }
-    if (season.isSelected()) {
-        campos.add("season");    }
-    
-    if (spoken_wordsg.isSelected()) {
-        campos.add("spoken_words");    }
-    if (raw_location_text.isSelected()) {
-        campos.add("raw_location_text");    }
-    if (raw_character_textg.isSelected()) {
-        campos.add("raw_character_text");    }
-    if (timestamp_in_ms.isSelected()) {
-        campos.add("timestamp_in_ms");    }
-    if (episode_id.isSelected()) {
-        campos.add("episode_id");    }
-    if (todos.isSelected()) {
-        campos.add("TODO");    }
-    if (todosg.isSelected()) {
-        campos.add("TODO");    }
-    
-    return campos;
-}
 
     /**
      * @param args the command line arguments
      */
-public static void main(String args[]) {
+    public static void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -621,7 +631,7 @@ public static void main(String args[]) {
             java.util.logging.Logger.getLogger(interfaz.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
-        
+
         /*String directorioActual = "./src";
 
         // Crea un objeto File para representar el directorio actual
@@ -640,8 +650,7 @@ public static void main(String args[]) {
         } else {
             System.out.println("El directorio actual no existe o no es un directorio válido.");
         }*/
-        
-        /* Create and display the form */
+ /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 new interfaz().setVisible(true);
@@ -674,4 +683,3 @@ public static void main(String args[]) {
     private javax.swing.JTextField txtConsulta;
     // End of variables declaration//GEN-END:variables
 }
-
