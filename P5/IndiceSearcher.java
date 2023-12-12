@@ -16,6 +16,7 @@ import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.index.Term;
 
 import java.io.*;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.nio.file.Paths;
@@ -233,8 +234,9 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
                     valorConsulta2 = in.readLine();
 
                     // Realizar las consultas
-                    consultarIndice("indexCU", "facetsCU", campoConsulta1, valorConsulta1, analyzer, similarity);
-                    consultarIndice("indexCS", "facetsCS", campoConsulta2, valorConsulta2, analyzer, similarity);
+//                    consultarIndice("indexCU", "facetsCU", campoConsulta1, valorConsulta1, analyzer, similarity);
+//                    consultarIndice("indexCS", "facetsCS", campoConsulta2, valorConsulta2, analyzer, similarity);
+                    BusquedaDoble("indexCU", "facetsCU", campoConsulta1, valorConsulta1, "indexCS", "facetsCS", campoConsulta2, valorConsulta2, analyzer, similarity);
                     return;
 
 				//--------------------------------------------------------------------------------------------------	
@@ -503,7 +505,7 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
 
         try{
             FacetsCollector fc = new FacetsCollector();
-            TopDocs tdc = FacetsCollector.search(searcher, query, 10, fc);
+            TopDocs tdc = FacetsCollector.search(searcher, ddq, 10, fc);
             System.out.println("Total hits = "+ tdc.totalHits);
             Facets fcCount2 = new FastTaxonomyFacetCounts(taxoReader, fconfig, fc); //num ocurrencias de cada una
             List<FacetResult> todasDims = fcCount2.getAllDims(100);
@@ -598,6 +600,8 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
         IndexSearcher searcher = null;
         FacetsConfig fconfig = null;
 
+        TopDocs td = null;
+
         try {
             // Directorio donde se encuentra el índice
             dir = FSDirectory.open(Paths.get(indexPath));
@@ -615,7 +619,7 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
             taxoReader = new DirectoryTaxonomyReader(taxoDir);
 
             // Realizar la consulta
-            return ConsultaGenericaValor(campo, valor, analyzer, searcher, fconfig);
+            td =  ConsultaGenericaValor(campo, valor, analyzer, searcher, fconfig);
         } finally {
             // Cerrar los recursos abiertos
             if (reader != null) {
@@ -628,6 +632,7 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
                 taxoReader.close();
             }
         }
+        return td;
     }
     public TopDocs ConsultaGenericaValor(String campo, String valor, Analyzer analyzer, IndexSearcher searcher, FacetsConfig fconfig) throws IOException {
         String line = valor.trim(); // Usamos el valor directamente
@@ -652,6 +657,25 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
         System.out.println("***********************************************\n");
         System.out.println("\n\n");
         return docs;
+    }
+
+    public TopDocs BusquedaDoble(String indexPath1, String facetPath1, String campo1, String valor1, String indexPath2, String facetPath2, String campo2, String valor2, Analyzer analyzer, Similarity similarity) throws IOException {
+        TopDocs td1 = consultarIndice(indexPath1, facetPath1, campo1, valor1, analyzer, similarity);
+        TopDocs td2 = consultarIndice(indexPath2, facetPath2, campo2, valor2, analyzer, similarity);
+
+        TopDocs td = null;
+
+        // Recorremos ambos resultados y los que tengan el mismo indice los devolvemos
+        for (int i = 0; i < td1.scoreDocs.length; i++) {
+            for (int j = 0; j < td2.scoreDocs.length; j++) {
+                if (td1.scoreDocs[i].doc == td2.scoreDocs[j].doc) {
+                    td.scoreDocs[i] = td1.scoreDocs[i];
+                }
+            }
+        }
+
+        return td;
+
     }
 
 
