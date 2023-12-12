@@ -97,8 +97,8 @@ public static void main(String[] args) {
     String facetPath = "indexCS";
 
 
-    if(indexPath == "indexCU"){
-        facetPath = "indexCS";
+    if(indexPath.contains("indexCU")){
+        facetPath = "indexCU";
     }
 
     IndiceSearcher indice = new IndiceSearcher(indexPath, facetPath);
@@ -499,19 +499,20 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
         //contador
         int i=0;
 
-        try{
+        System.out.println("\n\nFiltramos query( " + ddq.toString()+ " )"); //
 
-            FacetsCollector fc1 = new FacetsCollector();
-            TopDocs tdc = FacetsCollector.search(searcher, query, 10, fc1);
-            System.out.println("\n\nFiltramos query( " + ddq.toString()+ " )"); //
-            Facets fcCount2 = new FastTaxonomyFacetCounts(taxoReader, fconfig, fc1); //num ocurrencias de cada una
+        try{
+            FacetsCollector fc = new FacetsCollector();
+            TopDocs tdc = FacetsCollector.search(searcher, query, 10, fc);
+            System.out.println("Total hits = "+ tdc.totalHits);
+            Facets fcCount2 = new FastTaxonomyFacetCounts(taxoReader, fconfig, fc); //num ocurrencias de cada una
             List<FacetResult> todasDims = fcCount2.getAllDims(100);
 
             System.out.println("\nCategorias totales " + todasDims.size()+ " \n");
 
             //Para cada categoria mostramos el valor de la etiqueta y num ocurrencias
             for( FacetResult fr : todasDims ){
-                System.out.println("\nCategoria: " + fr.dim);
+                System.out.println("\nDimension: " + fr.dim);
                 int cont=0;
                 //Almacenamos cada etiqueta en un vector
                 for(LabelAndValue lv : fr.labelValues){
@@ -534,9 +535,8 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
 
         }catch(IOException e){
             System.out.println("Error al mostrar facetas. ");
+            System.out.println(e.getMessage());
         }
-
-
     }
 
     public TopDocs FiltrarPorFacetas(Query query, TopDocs td2, String [] vector_facetas){
@@ -654,14 +654,5 @@ public  void indexSearch(Analyzer analyzer, Similarity similarity){
         return docs;
     }
 
-    public void mostrarResultados(TopDocs resultados) {
-        // ... (tu lógica para mostrar los resultados aquí)
-        // Por ejemplo:
-        long totalHits = resultados.totalHits.value;
-        System.out.println("\n");
-        System.out.println("Hay: " + totalHits + " documentos ");
-        System.out.println("***********************************************\n");
-        System.out.println("\n\n");
-    }
 
 }
