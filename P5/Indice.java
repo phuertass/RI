@@ -155,9 +155,8 @@ public class Indice {
 
                 //CONFIGURAMOS FACETAS
                 fconfig.setMultiValued("imdb_rating", true);
-                fconfig.setMultiValued("numer_in_season", true);
-                fconfig.setMultiValued("title", true);
-
+                fconfig.setMultiValued("original_air_year", true);
+                fconfig.setMultiValued("season", true);
 
                 if(!nextRecord[1].isEmpty()){
                     // episode_id INT
@@ -200,7 +199,6 @@ public class Indice {
                     todo.append(nextRecord[6].trim()).append(" ");
                     doc.add(new org.apache.lucene.document.StringField(campos[6], nextRecord[6].trim(), org.apache.lucene.document.Field.Store.YES));
                     doc.add(new org.apache.lucene.document.NumericDocValuesField(campos[6], Long.valueOf(nextRecord[6].trim())));
-                    doc.add(new org.apache.lucene.facet.FacetField(campos[6], nextRecord[6].trim()));
 
                 }
                 if(!nextRecord[7].isEmpty()){
@@ -218,24 +216,22 @@ public class Indice {
                 }
                 if(!nextRecord[8].isEmpty()){
                     // original air year INT
-
                     todo.append(nextRecord[8].trim()).append(" ");
                     doc.add(new org.apache.lucene.document.StringField(campos[8], nextRecord[8].trim(), org.apache.lucene.document.Field.Store.YES));
                     doc.add(new org.apache.lucene.document.NumericDocValuesField(campos[8], Long.valueOf(nextRecord[8].trim())));
+                    doc.add(new org.apache.lucene.facet.FacetField(campos[8], nextRecord[8].trim()));
                 }
                 if(!nextRecord[9].isEmpty()){
                     // season INT
-
                     todo.append(nextRecord[9].trim()).append(" ");
                     doc.add(new org.apache.lucene.document.StringField(campos[9], nextRecord[9].trim(), org.apache.lucene.document.Field.Store.YES));
                     doc.add(new org.apache.lucene.document.NumericDocValuesField(campos[9], Long.valueOf(nextRecord[9].trim())));
-
+                    doc.add(new org.apache.lucene.facet.FacetField(campos[9], nextRecord[9].trim()));
                 }
                 if(!nextRecord[10].isEmpty()){
                     todo.append(nextRecord[10].trim()).append(" ");
                     // title TEXT
                     doc.add(new org.apache.lucene.document.TextField(campos[10], nextRecord[10], org.apache.lucene.document.Field.Store.YES));
-                    doc.add(new org.apache.lucene.facet.FacetField(campos[10], nextRecord[10].trim()));
                 }
                 if(!nextRecord[11].isEmpty()){
 
@@ -303,9 +299,7 @@ public class Indice {
             while ((nextRecord = csvReader.readNext()) != null) {
 
                 //CONFIGURAMOS FACETAS
-                fconfig.setMultiValued("number", true);
                 fconfig.setMultiValued("timestamp_in_ms", true);
-
 
                 if (!nextRecord[1].isEmpty()) {
                     todo.append(nextRecord[1]);
@@ -316,7 +310,6 @@ public class Indice {
                     todo.append(nextRecord[2]);
                     // number INT
                     doc.add(new org.apache.lucene.document.StringField(campos[2], nextRecord[2].trim(), org.apache.lucene.document.Field.Store.YES));
-                    doc.add(new org.apache.lucene.facet.FacetField(campos[2], nextRecord[2].trim()));
                 }
                 if (!nextRecord[3].isEmpty()) {
                     todo.append(nextRecord[3]);

@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="P5">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/opencsv-5.8.jar!/" />
+      <root url="jar://$PROJECT_DIR$/commons-lang3-3.12.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/commons-csv-1.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/p5.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
